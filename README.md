@@ -1,5 +1,7 @@
 # Claude Code Monitor
 
+> **Disclaimer**: This is reverse-engineered, agent-assisted research. Extraction and analysis are partially automated using AI tooling. Findings come from static analysis of obfuscated/minified code and may be incomplete, outdated, or misinterpreted. Nothing here is official Anthropic documentation. Verify independently before relying on any of this.
+
 Automated reverse engineering and change tracking for the Claude Code CLI.
 
 We extract, deobfuscate, and diff every release of the CLI binary to track changes in API format, feature flags, telemetry, model support, and internal architecture. When something changes, we know about it.

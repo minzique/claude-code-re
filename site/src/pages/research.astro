@@ -12,6 +12,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <p class="sub">Everything here was reverse-engineered from the native Bun-compiled binary. We extract and deobfuscate ~3,000 JavaScript modules per release using <a href="https://github.com/vicnaum/bun-demincer">bun-demincer</a>, then grep for patterns: beta flags, feature gates, endpoints, headers, env vars, model logic. Where static analysis wasn't enough, we captured live traffic through a reverse proxy (<code>ANTHROPIC_BASE_URL</code> override).</p>
   </header>
 
+  <aside class="disclaimer">This is reverse-engineered, agent-assisted research. Extraction and analysis are partially automated. Findings are from static analysis of obfuscated code and may be incomplete or misinterpreted. Verify independently before relying on any of this.</aside>
+
   <nav class="toc">
     <a href="#user-agent">User-agent</a>
     <a href="#headers">Headers</a>

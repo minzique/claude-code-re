@@ -63,3 +63,12 @@ pre code {
   font-size: 0.78em;
   line-height: 1.55;
 }
+
+.disclaimer {
+  font: 400 0.72rem var(--mono);
+  color: var(--text-dim);
+  border-left: 2px solid var(--border);
+  padding: 8px 14px;
+  margin: 20px 0;
+  line-height: 1.5;
+}
