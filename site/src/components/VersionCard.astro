@@ -1,0 +1,155 @@
+---
+import type { VersionData } from '../data/versions';
+import { parseDiff } from '../data/versions';
+
+interface Props {
+  v: VersionData;
+  isLatest: boolean;
+  base: string;
+}
+
+const { v, isLatest, base } = Astro.props;
+const s = v.signature;
+const diffSections = v.diff ? parseDiff(v.diff) : [];
+
+const stats = [
+  { n: s.betaFlags?.length ?? 0, label: 'betas' },
+  { n: s.featureFlags?.length ?? 0, label: 'flags' },
+  { n: s.envVars?.length ?? 0, label: 'env vars' },
+  { n: s.telemetryEvents?.length ?? 0, label: 'telemetry' },
+  { n: s.modelIds?.length ?? 0, label: 'models' },
+  { n: s.apiEndpoints?.length ?? 0, label: 'endpoints' },
+];
+---
+
+<article class:list={['edition', { latest: isLatest }]}>
+  <div class="edition-head">
+    <div class="edition-top">
+      <div class="tags">
+        {isLatest && <span class="tag tag-latest">Latest</span>}
+        {!v.prevVersion && <span class="tag tag-base">Baseline</span>}
+      </div>
+      <time>{v.date}</time>
+    </div>
+    <h2><a href={`${base}/v/${v.version}/`}>v{v.version}</a></h2>
+    <div class="stats">
+      {stats.map(({ n, label }) => (
+        <span class="stat">{n} <em>{label}</em></span>
+      ))}
+    </div>
+  </div>
+
+  {diffSections.length > 0 && (
+    <div class="changes">
+      <h3>Changes from v{v.prevVersion}</h3>
+      {diffSections.map(({ category, added, removed }) => (
+        <div class="change-cat">
+          <h4>{category}</h4>
+          <div class="change-items">
+            {added.map((a) => <span class="ci ci-add">+ {a}</span>)}
+            {removed.map((r) => <span class="ci ci-rm">- {r}</span>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <div class="edition-foot">
+    <a href={`${base}/v/${v.version}/`}>View full briefing →</a>
+  </div>
+</article>
+
+<style>
+  .edition {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .edition.latest { border-color: var(--accent-light); }
+
+  .edition-head {
+    padding: 22px 26px 18px;
+  }
+  .edition-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .tags { display: flex; gap: 6px; }
+  .tag {
+    font: 500 0.6rem var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  .tag-latest { background: var(--accent-bg); color: var(--accent); }
+  .tag-base { background: var(--surface-dim); color: var(--text-dim); }
+  time { font: 400 0.72rem var(--mono); color: var(--text-dim); }
+
+  h2 {
+    font: 500 1.55rem/1.15 var(--serif);
+    letter-spacing: -0.01em;
+  }
+  h2 a { color: var(--text); }
+  h2 a:hover { color: var(--accent); text-decoration: none; }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 12px;
+  }
+  .stat {
+    font: 500 0.95rem var(--mono);
+    color: var(--text);
+  }
+  .stat em {
+    font: 300 0.68rem var(--sans);
+    color: var(--text-dim);
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-left: 2px;
+  }
+
+  .changes {
+    padding: 16px 26px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-dim);
+  }
+  .changes h3 {
+    font: italic 400 0.88rem var(--serif);
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .change-cat { margin-bottom: 10px; }
+  .change-cat h4 {
+    font: 500 0.65rem var(--mono);
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .change-items { display: flex; flex-wrap: wrap; gap: 4px; }
+  .ci {
+    font: 400 0.72rem var(--mono);
+    padding: 2px 9px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .ci-add { color: var(--green); background: var(--green-bg); border-color: #d0e6d0; }
+  .ci-rm { color: var(--red); background: var(--red-bg); border-color: #e6d0d0; text-decoration: line-through; }
+
+  .edition-foot {
+    padding: 12px 26px;
+    border-top: 1px solid var(--border);
+  }
+  .edition-foot a {
+    font: 500 0.78rem var(--sans);
+    color: var(--accent);
+  }
+</style>

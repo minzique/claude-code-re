@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import VersionCard from '../components/VersionCard.astro';
+import { loadVersions } from '../data/versions';
+
+const versions = loadVersions();
+const lastUpdated = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Base title="The Claude Code Monitor">
+  <Masthead versionCount={versions.length} lastUpdated={lastUpdated} base={base} />
+
+  {versions.length > 0 && (
+    <section class="lede">
+      <p>
+        <strong>v{versions[0].version}</strong> —
+        {versions[0].diff
+          ? `Changes detected from v${versions[0].prevVersion}. Full analysis available.`
+          : `Baseline extraction. ${versions[0].signature.betaFlags?.length} beta flags, ${versions[0].signature.featureFlags?.length} feature flags tracked.`}
+      </p>
+    </section>
+  )}
+
+  <main>
+    {versions.map((v, i) => (
+      <VersionCard v={v} isLatest={i === 0} base={base} />
+    ))}
+  </main>
+
+  <footer class="site-footer">
+    <span>Automated extraction via bun-demincer · Analysis via Claude</span>
+    <a href="https://github.com/minzique/claude-code-re">Source</a>
+  </footer>
+</Base>
+
+<style>
+  .lede {
+    background: var(--accent-bg);
+    border: 1px solid #e6dbb8;
+    border-radius: 5px;
+    padding: 16px 22px;
+    margin-bottom: 36px;
+    font: 400 0.88rem var(--sans);
+    color: var(--text-secondary);
+  }
+  .lede strong { color: var(--text); font-weight: 500; }
+  main { margin-bottom: 48px; }
+  .site-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font: 400 0.72rem var(--mono);
+    color: var(--text-dim);
+  }
+</style>

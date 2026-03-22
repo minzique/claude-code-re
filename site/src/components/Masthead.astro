@@ -1,0 +1,48 @@
+---
+const { versionCount, lastUpdated, base } = Astro.props;
+---
+<header class="masthead">
+  <p class="kicker">Independent Technical Intelligence</p>
+  <h1>The Claude Code Monitor</h1>
+  <nav class="nav-row">
+    <span class="dateline">{versionCount} versions tracked · Last updated {lastUpdated}</span>
+    <a href={`${base}/research/`} class="nav-link">Research →</a>
+  </nav>
+</header>
+
+<style>
+  .masthead {
+    padding: 56px 0 36px;
+    border-bottom: 1px solid var(--border-strong);
+    margin-bottom: 40px;
+  }
+  .kicker {
+    font: 500 0.7rem var(--mono);
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font: 500 2.6rem/1.05 var(--serif);
+    color: var(--text);
+    letter-spacing: -0.025em;
+  }
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+  .dateline {
+    font: 400 0.78rem var(--mono);
+    color: var(--text-dim);
+    letter-spacing: 0.01em;
+  }
+  .nav-link {
+    font: 500 0.78rem var(--sans);
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .nav-link:hover { text-decoration: underline; }
+</style>

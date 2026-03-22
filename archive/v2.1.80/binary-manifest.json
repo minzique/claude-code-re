@@ -1,0 +1,9 @@
+{
+  "binary": "claude",
+  "checksum": "dbc25d38f0da28709fe22f248b08f80e73f2e43170dbedeff47bd8b97db8e737",
+  "size": 192658544,
+  "version": "2.1.80",
+  "buildDate": "2026-03-19T21:05:44Z",
+  "platform": "darwin-arm64",
+  "downloadedAt": "2026-03-21T12:29:00Z"
+}

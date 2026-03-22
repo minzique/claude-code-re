@@ -1,0 +1,56 @@
+name: Check for New Version
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Check version
+        id: version
+        run: |
+          result=$(bun run monitor/check-version.ts --json 2>&1)
+          echo "$result"
+          latest=$(echo "$result" | jq -r '.latest')
+          prev=$(echo "$result" | jq -r '.previousLatest // empty')
+          changed=$(echo "$result" | jq -r '.latestChanged')
+          echo "latest=$latest" >> $GITHUB_OUTPUT
+          echo "changed=$changed" >> $GITHUB_OUTPUT
+          echo "prev=$prev" >> $GITHUB_OUTPUT
+
+      - name: Create issue for new version
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const latest = '${{ steps.version.outputs.latest }}'
+            const prev = '${{ steps.version.outputs.prev }}'
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `New Claude Code version: ${latest}`,
+              body: [
+                `Claude Code **${prev}** → **${latest}** detected.`,
+                '',
+                'Run the pipeline locally to extract signatures:',
+                '```bash',
+                'cd monitor && make pipeline-version VERSION=' + latest,
+                '```',
+                '',
+                'Then commit signatures/ and push to trigger site rebuild.',
+              ].join('\n'),
+              labels: ['new-version'],
+            })

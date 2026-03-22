@@ -1,0 +1,368 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>v2.1.81 — The Claude Code Monitor</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◉</text></svg>"><style>@import"https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap";:root{--bg: #faf9f6;--surface: #ffffff;--surface-dim: #f3f1ec;--border: #e2dfd8;--border-strong: #c8c4b8;--text: #3a3632;--text-secondary: #7a7568;--text-dim: #a09a8c;--accent: #8b6914;--accent-light: #c9a84c;--accent-bg: #fdf6e3;--red: #b54a4a;--red-bg: #fdf2f2;--green: #3d7a3d;--green-bg: #f2faf2;--serif: "Newsreader", Georgia, serif;--sans: "DM Sans", system-ui, sans-serif;--mono: "DM Mono", "SF Mono", monospace;--max-w: 820px}*{margin:0;padding:0;box-sizing:border-box}html{background:var(--bg);color:var(--text);font:15px/1.65 var(--sans);-webkit-font-smoothing:antialiased}body{max-width:var(--max-w);margin:0 auto;padding:0 20px 100px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}code{font:400 .82em var(--mono);background:var(--surface-dim);border:1px solid var(--border);padding:1px 6px;border-radius:3px}pre{background:var(--surface-dim);border:1px solid var(--border);padding:14px 18px;border-radius:4px;overflow-x:auto;margin:12px 0}pre code{background:none;border:none;padding:0;font-size:.78em;line-height:1.55}
+.crumb{padding:24px 0 0;font:400 .78rem var(--sans)}.vhead{padding:28px 0 24px;border-bottom:1px solid var(--border-strong);margin-bottom:28px}.vhead time{font:400 .72rem var(--mono);color:var(--text-dim)}.vhead h1{font:500 2rem/1.1 var(--serif);letter-spacing:-.02em;margin:4px 0 16px}.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media(max-width:600px){.sgrid{grid-template-columns:repeat(2,1fr)}}.si{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:12px 14px}.sn{display:block;font:500 1.3rem var(--mono);color:var(--text)}.sl{font:400 .65rem var(--sans);color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em}.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:22px 26px 24px;margin-bottom:24px}.card>h2{font:500 1rem var(--serif);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}.diff{background:var(--surface)}.dcat{margin-bottom:14px}.dcat h3{font:500 .65rem var(--mono);color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}.ditems{display:flex;flex-wrap:wrap;gap:5px}.di{font:400 .72rem var(--mono);padding:3px 10px;border-radius:3px;border:1px solid}.da{color:var(--green);background:var(--green-bg);border-color:#d0e6d0}.dr{color:var(--red);background:var(--red-bg);border-color:#e6d0d0;text-decoration:line-through}.prose{font-size:.88rem;line-height:1.7;color:var(--text)}.prose h1{font:500 1.05rem var(--serif);color:var(--text);margin:32px 0 8px;padding-top:20px;border-top:1px solid var(--border)}.prose h2{font:500 .95rem var(--serif);color:var(--text);margin:28px 0 8px;padding-top:16px;border-top:1px solid var(--border)}.prose h3{font:500 .8rem var(--sans);color:var(--accent);margin:16px 0 6px}.prose h4{font:500 .75rem var(--sans);color:var(--text-secondary);margin:12px 0 4px}.prose p{margin:6px 0}.prose ul,.prose ol{padding-left:20px;margin:6px 0}.prose li{margin:3px 0}.prose strong{color:var(--text);font-weight:500}.prose hr{border:none;border-top:1px solid var(--border);margin:28px 0}.prose table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.82rem}.prose th,.prose td{padding:7px 12px;border:1px solid var(--border);text-align:left}.prose th,.prose thead td{font-weight:500;background:var(--surface-dim);color:var(--text)}.prose blockquote{border-left:3px solid var(--border);padding-left:14px;color:var(--text-secondary);margin:10px 0}details{border-top:1px solid var(--border)}details:first-of-type{border-top:none}summary{padding:10px 0;font:500 .78rem var(--mono);color:var(--text-secondary);cursor:pointer;user-select:none}summary:hover{color:var(--text)}details[open] summary{color:var(--text);margin-bottom:4px}.tgrid{display:flex;flex-wrap:wrap;gap:5px;padding-bottom:10px}.tgrid code{font-size:.7rem;padding:2px 7px;white-space:nowrap}.tgrid.sm code{font-size:.65rem}
+</style></head> <body>  <nav class="crumb"><a href="/claude-code-re/">← All versions</a></nav> <header class="vhead"> <time>March 21, 2026</time> <h1>v2.1.81</h1> <div class="sgrid"> <div class="si"> <span class="sn">27</span> <span class="sl">Beta Flags</span> </div><div class="si"> <span class="sn">784</span> <span class="sl">Feature Flags</span> </div><div class="si"> <span class="sn">217</span> <span class="sl">Env Vars</span> </div><div class="si"> <span class="sn">786</span> <span class="sl">Telemetry</span> </div><div class="si"> <span class="sn">19</span> <span class="sl">Models</span> </div><div class="si"> <span class="sn">25</span> <span class="sl">Endpoints</span> </div><div class="si"> <span class="sn">21</span> <span class="sl">Headers</span> </div><div class="si"> <span class="sn">6</span> <span class="sl">OAuth</span> </div> </div> </header> <section class="card diff"> <h2>Changes from v2.1.80</h2> <div class="dcat"> <h3>Beta Flags</h3> <div class="ditems"> <span class="di da">+ ccr-triggers-2026-01-30</span>  </div> </div><div class="dcat"> <h3>Feature Flags (tengu_*)</h3> <div class="ditems"> <span class="di da">+ tengu_auto_dream_toggled</span><span class="di da">+ tengu_brief_mode_enabled</span><span class="di da">+ tengu_defer_caveat_m9k</span><span class="di da">+ tengu_harbor_permissions</span><span class="di da">+ tengu_mcp_channel_flags</span><span class="di da">+ tengu_mcp_channel_gate</span><span class="di da">+ tengu_mcp_channel_message</span><span class="di da">+ tengu_message_actions_enter</span><span class="di da">+ tengu_oauth_token_refresh_completed</span><span class="di da">+ tengu_relink_walk_broken</span><span class="di da">+ tengu_review_remote_launched</span><span class="di da">+ tengu_review_remote_precondition_failed</span><span class="di da">+ tengu_review_remote_teleport_failed</span><span class="di da">+ tengu_slate_heron</span><span class="di da">+ tengu_tern_alloy</span><span class="di da">+ tengu_time_based_microcompact</span><span class="di da">+ tengu_voice_silent_drop_replay</span>  </div> </div><div class="dcat"> <h3>Environment Variables</h3> <div class="ditems"> <span class="di da">+ CLAUDE_CODE_USE_POWERSHELL_TOOL</span>  </div> </div><div class="dcat"> <h3>Telemetry Events</h3> <div class="ditems"> <span class="di da">+ tengu_auto_dream_toggled</span><span class="di da">+ tengu_brief_mode_enabled</span><span class="di da">+ tengu_defer_caveat_m9k</span><span class="di da">+ tengu_harbor_permissions</span><span class="di da">+ tengu_mcp_channel_flags</span><span class="di da">+ tengu_mcp_channel_gate</span><span class="di da">+ tengu_mcp_channel_message</span><span class="di da">+ tengu_message_actions_enter</span><span class="di da">+ tengu_relink_walk_broken</span><span class="di da">+ tengu_review_remote_launched</span><span class="di da">+ tengu_review_remote_precondition_failed</span><span class="di da">+ tengu_review_remote_teleport_failed</span><span class="di da">+ tengu_slate_heron</span><span class="di da">+ tengu_tern_alloy</span><span class="di da">+ tengu_time_based_microcompact</span><span class="di da">+ tengu_voice_silent_drop_replay</span>  </div> </div> </section><section class="card"> <h2>AI Analysis</h2> <article class="prose"><h2>API request format, headers, beta flags, auth changes</h2>
+<h2>Claude Code v2.1.81 — API Request Format Analysis</h2>
+<h3>Beta Header Construction</h3>
+<p>Betas are assembled via <code>NuT()</code> in <strong>4411.js</strong> and sent as <code>anthropic_beta</code> in the request body (SDK converts to <code>anthropic-beta</code> header):</p>
+<pre><code class="language-js">// NuT() merges CLAUDE_CODE_EXTRA_BODY betas with passed betas, deduplicating
+if (q.anthropic_beta &amp;&amp; Array.isArray(q.anthropic_beta)) {
+  q.anthropic_beta = [...K, ...R.filter($ =&gt; !K.includes($))];
+} else q.anthropic_beta = _;
+</code></pre>
+<p><strong>Change from 2.1.80:</strong> <code>ccr-triggers-2026-01-30</code> added — 27 total beta flags. Per-model betas still resolved via <code>oN(model)</code>. The <code>CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS</code> env var suppresses non-essential betas.</p>
+<h3>Auth Headers</h3>
+<p>Two paths — both redacted in logs by <code>FU()</code> in <strong>1311.js</strong> (<code>x-api-key</code> and <code>authorization</code> → <code>***</code>):</p>
+<ul>
+<li><strong>API key path</strong>: <code>x-api-key</code> header</li>
+<li><strong>OAuth path</strong>: <code>authorization: Bearer &lt;token&gt;</code></li>
+</ul>
+<p><strong>Change:</strong> <code>tengu_oauth_token_refresh_completed</code> telemetry event added — OAuth refresh flow now emits a completion event. The <code>tengu_harbor_permissions</code> flag suggests new permission gating around auth scope.</p>
+<h3>Metadata / Attribution</h3>
+<p><code>k__()</code> in <strong>4411.js</strong> constructs <code>metadata.user_id</code> as a hash of <code>device_id + account_uuid + session_id</code>:</p>
+<pre><code class="language-js">user_id: I_({ ..._, device_id: vV(), account_uuid: dR()?.accountUuid ?? &quot;&quot;, session_id: vT() })
+</code></pre>
+<p><code>CLAUDE_CODE_EXTRA_METADATA</code> env var allows additional fields to be merged in. No changes here from 2.1.80.</p>
+<h3>Prompt Cache Headers</h3>
+<p><code>nB()</code> constructs <code>cache_control</code> objects. <code>Xq$()</code> gates the <code>ttl: &quot;1h&quot;</code> option:</p>
+<ul>
+<li>Bedrock: requires <code>ENABLE_PROMPT_CACHING_1H_BEDROCK=true</code></li>
+<li>Claude.ai: requires Pro subscription + not in overage + query source in allowlist (<code>tengu_prompt_cache_1h_config</code>)</li>
+</ul>
+<p>No changes from 2.1.80.</p>
+<h3>Streaming Helper Header</h3>
+<p>From <strong>1340.js</strong>, streaming requests append:</p>
+<pre><code>X-Stainless-Helper-Method: stream
+</code></pre>
+<p>No changes.</p>
+<h3>New MCP Channel Headers</h3>
+<p><code>tengu_mcp_channel_flags</code>, <code>tengu_mcp_channel_gate</code>, <code>tengu_mcp_channel_message</code> are new feature flags — these gate MCP connection behavior but don&#39;t appear to modify HTTP headers directly. The <code>hEq()</code> function in <strong>3094.js</strong> parses <code>Header-Name: value</code> strings for custom MCP server headers (unchanged).</p>
+<hr>
+<p><strong>Summary of changes affecting wire format:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>anthropic-beta</code></td>
+<td><code>ccr-triggers-2026-01-30</code> added</td>
+</tr>
+<tr>
+<td>OAuth</td>
+<td>Token refresh now tracked via telemetry (<code>tengu_oauth_token_refresh_completed</code>)</td>
+</tr>
+<tr>
+<td>Other headers</td>
+<td>No changes detected</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>New telemetry events, tracking, data collection</h2>
+<h2>v2.1.81 Telemetry Inventory</h2>
+<h3>New Events (16 total)</h3>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Likely Purpose</th>
+<th>Privacy Risk</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tengu_mcp_channel_message</code></td>
+<td>Messages through MCP channels</td>
+<td><strong>HIGH</strong> — may capture message metadata/content</td>
+</tr>
+<tr>
+<td><code>tengu_harbor_permissions</code></td>
+<td>Permission decisions for &quot;harbor&quot; feature</td>
+<td><strong>MEDIUM</strong> — tool names, possibly file paths (see <code>blocked_path</code> in <code>can_use_tool</code> handler in 4662.js)</td>
+</tr>
+<tr>
+<td><code>tengu_review_remote_launched</code></td>
+<td>Remote code review session start</td>
+<td><strong>MEDIUM</strong> — repo/code context sent remotely</td>
+</tr>
+<tr>
+<td><code>tengu_review_remote_precondition_failed</code></td>
+<td>Remote review precondition check failures</td>
+<td>Low-medium — captures what check failed</td>
+</tr>
+<tr>
+<td><code>tengu_review_remote_teleport_failed</code></td>
+<td>Session/context transfer failure for remote review</td>
+<td>Low-medium</td>
+</tr>
+<tr>
+<td><code>tengu_relink_walk_broken</code></td>
+<td>Filesystem relink traversal failure</td>
+<td>Low-medium — error context may include file paths</td>
+</tr>
+<tr>
+<td><code>tengu_voice_silent_drop_replay</code></td>
+<td>Voice input drop/replay events</td>
+<td>Low-medium — voice session metadata</td>
+</tr>
+<tr>
+<td><code>tengu_mcp_channel_flags</code></td>
+<td>MCP channel config flags at runtime</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><code>tengu_mcp_channel_gate</code></td>
+<td>MCP channel access gate decisions</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><code>tengu_auto_dream_toggled</code></td>
+<td>Auto-dream mode toggle</td>
+<td>Low — UI state</td>
+</tr>
+<tr>
+<td><code>tengu_brief_mode_enabled</code></td>
+<td>Brief/compact response mode activation</td>
+<td>Low — UI state</td>
+</tr>
+<tr>
+<td><code>tengu_message_actions_enter</code></td>
+<td>User enters message actions UI</td>
+<td>Low — UI interaction</td>
+</tr>
+<tr>
+<td><code>tengu_time_based_microcompact</code></td>
+<td>Time-triggered conversation compaction</td>
+<td>Low — timing data</td>
+</tr>
+<tr>
+<td><code>tengu_defer_caveat_m9k</code></td>
+<td>Opaque — caveat/warning deferral</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td><code>tengu_slate_heron</code></td>
+<td>Opaque codename</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td><code>tengu_tern_alloy</code></td>
+<td>Opaque codename</td>
+<td>Unknown</td>
+</tr>
+</tbody></table>
+<p>Note: <code>tengu_oauth_token_refresh_completed</code> is in Feature Flags but <strong>not</strong> in Telemetry Events — it&#39;s a gate, not a fired event.</p>
+<hr>
+<h3>Data Collection Context (from modules)</h3>
+<p><strong><code>k__()</code> in 4411.js</strong> — sent with every API request:</p>
+<pre><code class="language-js">{ user_id: JSON({ device_id, account_uuid, session_id }) }
+</code></pre>
+<p>Existing behavior, but note <code>account_uuid</code> + <code>device_id</code> + <code>session_id</code> are all bundled as a single <code>user_id</code> field.</p>
+<p><strong><code>tengu_headless_latency</code></strong> (existing, 3036.js) — fields: <code>turn_number</code>, <code>time_to_first_response_ms</code>, <code>time_to_query_start_ms</code>, <code>query_overhead_ms</code>, <code>checkpoint_count</code>, <code>entrypoint</code>.</p>
+<hr>
+<h3>Privacy Flags</h3>
+<ol>
+<li><p><strong><code>tengu_mcp_channel_message</code></strong> — MCP tool calls carry file contents, shell output, etc. Even metadata (channel ID, message type, size) is sensitive in enterprise contexts.</p>
+</li>
+<li><p><strong><code>tengu_harbor_permissions</code></strong> — The <code>can_use_tool</code> handler (4662.js) already captures <code>tool_name</code>, <code>blocked_path</code>, <code>decision_reason</code>. If <code>tengu_harbor_permissions</code> echoes similar fields, file paths are in the payload.</p>
+</li>
+<li><p><strong>Remote review triad</strong> (<code>tengu_review_remote_*</code>) — A new remote review capability is being instrumented. Three events covering launch, precondition failure, and &quot;teleport&quot; failure. The feature itself (sending code to a remote endpoint) is the privacy concern, not just the telemetry.</p>
+</li>
+<li><p><strong>Three opaque events</strong> (<code>tengu_defer_caveat_m9k</code>, <code>tengu_slate_heron</code>, <code>tengu_tern_alloy</code>) — cannot determine payloads from the provided modules. Worth monitoring in future diffs.</p>
+</li>
+<li><p><strong><code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code></strong> — new env var enabling PowerShell as a tool. Any PowerShell commands executed would flow through existing <code>PreToolUse</code>/<code>PostToolUse</code> hooks and bash-command telemetry.</p>
+</li>
+</ol>
+<hr>
+<h2>New features, feature flags, capabilities</h2>
+<h2>Claude Code v2.1.81 — New Capabilities Summary</h2>
+<h3>Feature Flags (tengu_*)</h3>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Inferred Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tengu_auto_dream_toggled</code></td>
+<td>Auto-enables &quot;dream mode&quot; (extended thinking/planning) based on some condition</td>
+</tr>
+<tr>
+<td><code>tengu_brief_mode_enabled</code></td>
+<td>Compact/terse response mode — shorter outputs by default</td>
+</tr>
+<tr>
+<td><code>tengu_defer_caveat_m9k</code></td>
+<td>Defers or suppresses certain model caveats (likely for m9k/Sonnet 4 variant)</td>
+</tr>
+<tr>
+<td><code>tengu_harbor_permissions</code></td>
+<td>New permission system (&quot;Harbor&quot;) — likely the upcoming redesigned trust/permissions flow</td>
+</tr>
+<tr>
+<td><code>tengu_mcp_channel_flags</code> / <code>tengu_mcp_channel_gate</code> / <code>tengu_mcp_channel_message</code></td>
+<td>MCP channel feature: gated flag, entry gate, and messaging — likely MCP server communication channels or a new MCP transport layer</td>
+</tr>
+<tr>
+<td><code>tengu_message_actions_enter</code></td>
+<td>Enter key triggers message actions (UI interaction change)</td>
+</tr>
+<tr>
+<td><code>tengu_oauth_token_refresh_completed</code></td>
+<td>Tracks OAuth token refresh lifecycle — telemetry for auth reliability</td>
+</tr>
+<tr>
+<td><code>tengu_relink_walk_broken</code></td>
+<td>Detects broken symlinks during worktree/project relinking</td>
+</tr>
+<tr>
+<td><code>tengu_review_remote_launched</code> / <code>tengu_review_remote_precondition_failed</code> / <code>tengu_review_remote_teleport_failed</code></td>
+<td>Remote code review feature (&quot;teleport&quot;) — launches review sessions remotely; tracks failures</td>
+</tr>
+<tr>
+<td><code>tengu_slate_heron</code></td>
+<td>Codename for a new UI theme or model variant (&quot;slate&quot; + &quot;heron&quot; = design experiment)</td>
+</tr>
+<tr>
+<td><code>tengu_tern_alloy</code></td>
+<td>Another codename — likely a model or runtime variant pairing</td>
+</tr>
+<tr>
+<td><code>tengu_time_based_microcompact</code></td>
+<td>Time-triggered auto-compaction of conversation context</td>
+</tr>
+<tr>
+<td><code>tengu_voice_silent_drop_replay</code></td>
+<td>Voice mode: silently drops and replays audio segments (latency/quality fix)</td>
+</tr>
+</tbody></table>
+<h3>Beta Flags</h3>
+<ul>
+<li><code>ccr-triggers-2026-01-30</code> — CCR (likely &quot;Claude Code Review&quot;) trigger rules, date-versioned beta flag</li>
+</ul>
+<h3>Environment Variables</h3>
+<ul>
+<li><code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code> — Enables a PowerShell-specific tool (new Windows/WSL tool for shell execution, distinct from Bash)</li>
+</ul>
+<h3>Key Observations</h3>
+<ol>
+<li><p><strong>Remote Review</strong> is the biggest new surface: three telemetry events (<code>launched</code>, <code>precondition_failed</code>, <code>teleport_failed</code>) suggest a feature where Claude Code can review code on a remote machine/session, with &quot;teleport&quot; as the transport mechanism.</p>
+</li>
+<li><p><strong>MCP Channels</strong> (<code>mcp_channel_flags/gate/message</code>) points to a new structured communication layer between MCP servers and Claude Code — possibly bidirectional channels rather than just tool calls.</p>
+</li>
+<li><p><strong>Harbor Permissions</strong> appears to be a rearchitected permissions system (replacing or extending the existing trust dialog seen in <code>4716.js</code>).</p>
+</li>
+<li><p><strong>Brief Mode</strong> + <strong>Time-based Microcompact</strong> together suggest work on keeping context windows lean automatically.</p>
+</li>
+<li><p><strong>PowerShell tool</strong> (<code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code>) signals first-class Windows support beyond WSL — a separate tool definition for PowerShell alongside Bash.</p>
+</li>
+</ol>
+<hr>
+<h2>Security-relevant changes, auth, permissions, sandboxing</h2>
+<h2>Security Assessment: Claude Code v2.1.81</h2>
+<h3>New Attack Surface</h3>
+<p><strong><code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code> (new env var)</strong>
+New execution backend. PowerShell has different quoting rules and injection vectors than bash. No code shown, but enabling this likely opens a new command execution path — needs review for injection hygiene parity with the bash tool.</p>
+<p><strong><code>tengu_harbor_permissions</code> (new flag)</strong>
+Name suggests a permissions model change. No implementation shown, but permission model changes are high-value from an attacker&#39;s perspective. Monitor what this gates.</p>
+<p><strong><code>tengu_oauth_token_refresh_completed</code> (new flag + telemetry)</strong>
+New OAuth token refresh flow. Suggests token lifecycle changes. Auth token handling changes warrant scrutiny — specifically whether refresh tokens are logged or exposed in telemetry.</p>
+<hr>
+<h3>Permission Model</h3>
+<p><strong>4662.js — <code>createCanUseTool</code></strong>
+The permission decision flow is: local policy check → race between hook decision and SDK permission request. Hook wins if it returns first. This is existing behavior, but the race is worth noting: a malicious hook that responds faster than the SDK request could silently allow or deny operations. No change here, but <code>tengu_harbor_permissions</code> may alter this flow.</p>
+<p><strong>4662.js — <code>update_environment_variables</code> message type</strong></p>
+<pre><code class="language-js">if (T.type === &quot;update_environment_variables&quot;) {
+  for (let [q, K] of Object.entries(T.variables)) process.env[q] = K;
+  return;
+}
+</code></pre>
+<p>This allows the input stream to mutate <code>process.env</code> directly. An attacker who can inject into the stdin stream can set arbitrary env vars — including <code>PATH</code>, <code>NODE_PATH</code>, or any API key variables. This is existing behavior but high-severity if stdin is not fully trusted.</p>
+<p><strong>3282.js — <code>JG_</code> env var allowlist</strong>
+The <code>PG_</code> allowlist filters which env vars get passed as &quot;shell settings&quot; vs &quot;user env vars.&quot; Notably <code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code> is <strong>not in the allowlist</strong> — meaning it must be set externally rather than via project config. This is correct behavior, but verify it&#39;s enforced consistently.</p>
+<hr>
+<h3>Sandbox/Isolation</h3>
+<p><strong>4534.js — <code>SandboxViolationStore</code></strong></p>
+<pre><code class="language-js">if (!z8.isSandboxingEnabled()) return;
+let j = z8.getSandboxViolationStore();
+</code></pre>
+<p>UI-only component showing sandbox block count. The sandbox status check is at the UI layer only — sandboxing must be enforced deeper. No regression visible here.</p>
+<hr>
+<h3>Trust Dialog (4716.js)</h3>
+<p>The trust dialog (<code>$5$</code>) gates home directory detection:</p>
+<pre><code class="language-js">let r = gq8.homedir() === MT();
+</code></pre>
+<p>If the user&#39;s CWD <em>is</em> the home directory, <code>XV_(true)</code> sets a different trust state vs. <code>YH(H5$)</code>. The distinction matters — accepting trust in <code>$HOME</code> is a much broader grant than a project dir. This logic exists in prior versions; no change visible.</p>
+<p><strong>Skill/plugin Bash access check (<code>j5$</code>, <code>w5$</code>)</strong>:</p>
+<pre><code class="language-js">_.allowedTools?.some(z5$)
+// z5$: _ === b6 || _.startsWith(b6 + &quot;(&quot;)
+</code></pre>
+<p>Checks whether loaded skills/plugins request Bash tool access. Flagged in the trust dialog. This is defensive behavior, not a regression.</p>
+<hr>
+<h3>Teleport / Remote Session (4722.js)</h3>
+<p>New flags: <code>tengu_review_remote_launched</code>, <code>tengu_review_remote_precondition_failed</code>, <code>tengu_review_remote_teleport_failed</code>, <code>tengu_relink_walk_broken</code></p>
+<p>The <code>GS9</code> component lists and resumes remote Claude Code sessions. Auth error classification in <code>L5$</code> correctly catches <code>/login</code>, <code>403</code>, <code>oauth</code>, and <code>not authenticated</code> strings. No obvious bypass, but the remote session feature expands the attack surface — a compromised session listed here could be selected and resumed.</p>
+<hr>
+<h3>Input Handling (4662.js)</h3>
+<p><code>processLine</code> calls <code>process.exit(1)</code> on parse errors:</p>
+<pre><code class="language-js">} catch (T) {
+  console.error(`Error parsing streaming input line: ${_}: ${T}`);
+  process.exit(1);
+}
+</code></pre>
+<p>Malformed input kills the process. This is a DoS vector if stdin can be influenced externally (e.g., in piped/SDK modes). Existing behavior, not new.</p>
+<hr>
+<h3>Summary Table</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Risk</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code></td>
+<td>Medium — new execution backend, injection surface unknown</td>
+<td>New, no impl shown</td>
+</tr>
+<tr>
+<td><code>tengu_harbor_permissions</code></td>
+<td>Medium — unknown permissions change</td>
+<td>New, needs tracking</td>
+</tr>
+<tr>
+<td><code>update_environment_variables</code> via stdin</td>
+<td>High — arbitrary <code>process.env</code> mutation</td>
+<td>Existing, not new</td>
+</tr>
+<tr>
+<td>OAuth token refresh flag</td>
+<td>Low-Medium — depends on implementation</td>
+<td>New</td>
+</tr>
+<tr>
+<td>Remote session teleport</td>
+<td>Low-Medium — expands session attack surface</td>
+<td>New feature area</td>
+</tr>
+<tr>
+<td>PowerShell not in env allowlist</td>
+<td>Mitigating</td>
+<td>Correct</td>
+</tr>
+<tr>
+<td>Sandbox UI display</td>
+<td>None</td>
+<td>No change</td>
+</tr>
+<tr>
+<td>Trust dialog home dir check</td>
+<td>Low — existing logic</td>
+<td>No change</td>
+</tr>
+</tbody></table>
+<p><strong>Bottom line:</strong> No critical new vulnerabilities visible in the shown code. The <code>update_environment_variables</code> stdin handler remains the most significant existing risk. Watch <code>tengu_harbor_permissions</code> — name implies permissions model change but no implementation was included. The PowerShell tool addition is the largest unknown new attack surface.</p>
+<hr>
+</article> </section><section class="card"> <h2>Signature Data</h2> <details> <summary>Beta Flags (27)</summary> <div class="tgrid"><code>advanced-tool-use-2025-11-20</code><code>afk-mode-2026-01-31</code><code>bedrock-2023-05-31</code><code>ccr-byoc-2025-07-29</code><code>ccr-triggers-2026-01-30</code><code>compact-2026-01-12</code><code>context-1m-2025-08-07</code><code>context-management-2025-06-27</code><code>effort-2025-11-24</code><code>environments-2025-11-01</code><code>fast-mode-2026-02-01</code><code>files-api-2025-04-14</code><code>interleaved-thinking-2025-05-14</code><code>mcp-client-2025-11-20</code><code>mcp-servers-2025-12-04</code><code>message-batches-2024-09-24</code><code>oauth-2025-04-20</code><code>prompt-caching-scope-2026-01-05</code><code>redact-thinking-2026-02-12</code><code>skills-2025-10-02</code><code>structured-outputs-2025-11-13</code><code>structured-outputs-2025-12-15</code><code>token-counting-2024-11-01</code><code>tool-examples-2025-10-29</code><code>tool-search-tool-2025-10-19</code><code>vertex-2023-10-16</code><code>web-search-2025-03-05</code></div> </details> <details> <summary>Model IDs (19)</summary> <div class="tgrid"><code>claude-haiku-3-5</code><code>claude-haiku-4</code><code>claude-haiku-4-5</code><code>claude-haiku-4-5-20251001</code><code>claude-opus-4</code><code>claude-opus-4-0</code><code>claude-opus-4-1</code><code>claude-opus-4-1-20250805</code><code>claude-opus-4-20250514</code><code>claude-opus-4-5</code><code>claude-opus-4-5-20251101</code><code>claude-opus-4-6</code><code>claude-sonnet-3-7</code><code>claude-sonnet-4</code><code>claude-sonnet-4-</code><code>claude-sonnet-4-20250514</code><code>claude-sonnet-4-5</code><code>claude-sonnet-4-5-20250929</code><code>claude-sonnet-4-6</code></div> </details> <details> <summary>API Endpoints (25)</summary> <div class="tgrid"><code>/api/event_logging/batch</code><code>/api/ws/speech_to_text/voice_stream</code><code>/v1/complete</code><code>/v1/files</code><code>/v1/messages</code><code>/v1/messages/batches</code><code>/v1/messages/count_tokens</code><code>/v1/models</code><code>/v1/token</code><code>https://api-staging.anthropic.com</code><code>https://api.anthropic.com</code><code>https://api.anthropic.com/</code><code>https://api.anthropic.com/api/claude_cli_feedback</code><code>https://api.anthropic.com/api/claude_code/metrics</code><code>https://api.anthropic.com/api/claude_code/organizations/metrics_enabled</code><code>https://api.anthropic.com/api/claude_code_shared_session_transcripts</code><code>https://api.anthropic.com/api/oauth/claude_cli/create_api_key</code><code>https://api.anthropic.com/api/oauth/claude_cli/roles</code><code>https://cdn.growthbook.io</code><code>https://mcp-proxy.anthropic.com</code><code>https://platform.claude.com/llms.txt</code><code>https://platform.claude.com/oauth/authorize</code><code>https://platform.claude.com/oauth/code/callback</code><code>https://platform.claude.com/v1/oauth/token</code><code>https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases</code></div> </details> <details> <summary>HTTP Headers (21)</summary> <div class="tgrid"><code>anthropic-admin-api-key</code><code>anthropic-api-key</code><code>anthropic-beta</code><code>anthropic-dangerous-direct-browser-access</code><code>anthropic-marketplace</code><code>anthropic-plugins</code><code>anthropic-ratelimit-unified-fallback</code><code>anthropic-ratelimit-unified-overage-disabled-reason</code><code>anthropic-ratelimit-unified-overage-reset</code><code>anthropic-ratelimit-unified-overage-status</code><code>anthropic-ratelimit-unified-representative-claim</code><code>anthropic-ratelimit-unified-reset</code><code>anthropic-ratelimit-unified-status</code><code>anthropic-version</code><code>x-anthropic-additional-protection</code><code>x-anthropic-billing-header</code><code>x-app</code><code>x-claude-remote-container-id</code><code>x-claude-remote-session-id</code><code>x-client-app</code><code>x-stainless-helper</code></div> </details> <details> <summary>OAuth Scopes (6)</summary> <div class="tgrid"><code>org:create_api_key</code><code>user:file_upload</code><code>user:inference</code><code>user:mcp_servers</code><code>user:profile</code><code>user:sessions:claude_code</code></div> </details> <details> <summary>Environment Variables (217)</summary> <div class="tgrid sm"><code>ANTHROPIC_API_KEY</code><code>ANTHROPIC_AUTH_TOKEN</code><code>ANTHROPIC_BASE_URL</code><code>ANTHROPIC_BEDROCK_BASE_URL</code><code>ANTHROPIC_BETAS</code><code>ANTHROPIC_CUSTOM_HEADERS</code><code>ANTHROPIC_CUSTOM_MODEL_OPTION</code><code>ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION</code><code>ANTHROPIC_CUSTOM_MODEL_OPTION_NAME</code><code>ANTHROPIC_DEFAULT_HAIKU_MODEL</code><code>ANTHROPIC_DEFAULT_OPUS_MODEL</code><code>ANTHROPIC_DEFAULT_SONNET_MODEL</code><code>ANTHROPIC_FOUNDRY_API_KEY</code><code>ANTHROPIC_FOUNDRY_BASE_URL</code><code>ANTHROPIC_FOUNDRY_RESOURCE</code><code>ANTHROPIC_MODEL</code><code>ANTHROPIC_SMALL_FAST_MODEL</code><code>ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION</code><code>ANTHROPIC_UNIX_SOCKET</code><code>ANTHROPIC_VERTEX_PROJECT_ID</code><code>API_TIMEOUT_MS</code><code>CLAUDE_AFTER_LAST_COMPACT</code><code>CLAUDE_AGENT_SDK_CLIENT_APP</code><code>CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS</code><code>CLAUDE_AGENT_SDK_MCP_NO_PREFIX</code><code>CLAUDE_AGENT_SDK_VERSION</code><code>CLAUDE_AUTOCOMPACT_PCT_OVERRIDE</code><code>CLAUDE_AUTO_BACKGROUND_TASKS</code><code>CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR</code><code>CLAUDE_BRIDGE_USE_CCR_V2</code><code>CLAUDE_CHROME_PERMISSION_MODE</code><code>CLAUDE_CODE_ACCESSIBILITY</code><code>CLAUDE_CODE_ACCOUNT_TAGGED_ID</code><code>CLAUDE_CODE_ACCOUNT_UUID</code><code>CLAUDE_CODE_ACTION</code><code>CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD</code><code>CLAUDE_CODE_ADDITIONAL_PROTECTION</code><code>CLAUDE_CODE_ALWAYS_ENABLE_EFFORT</code><code>CLAUDE_CODE_API_BASE_URL</code><code>CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR</code><code>CLAUDE_CODE_API_KEY_HELPER_TTL_MS</code><code>CLAUDE_CODE_ATTRIBUTION_HEADER</code><code>CLAUDE_CODE_AUTO_COMPACT_WINDOW</code><code>CLAUDE_CODE_AUTO_CONNECT_IDE</code><code>CLAUDE_CODE_BASE_REF</code><code>CLAUDE_CODE_BASH_SANDBOX_SHOW_INDICATOR</code><code>CLAUDE_CODE_BLOCKING_LIMIT_OVERRIDE</code><code>CLAUDE_CODE_BRIEF</code><code>CLAUDE_CODE_BRIEF_UPLOAD</code><code>CLAUDE_CODE_BUBBLEWRAP</code><code>CLAUDE_CODE_CLIENT_CERT</code><code>CLAUDE_CODE_CLIENT_KEY</code><code>CLAUDE_CODE_CLIENT_KEY_PASSPHRASE</code><code>CLAUDE_CODE_CONTAINER_ID</code><code>CLAUDE_CODE_CUSTOM_OAUTH_URL</code><code>CLAUDE_CODE_DATADOG_FLUSH_INTERVAL_MS</code><code>CLAUDE_CODE_DEBUG_LOGS_DIR</code><code>CLAUDE_CODE_DEBUG_LOG_LEVEL</code><code>CLAUDE_CODE_DIAGNOSTICS_FILE</code><code>CLAUDE_CODE_DISABLE_1M_CONTEXT</code><code>CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING</code><code>CLAUDE_CODE_DISABLE_ATTACHMENTS</code><code>CLAUDE_CODE_DISABLE_AUTO_MEMORY</code><code>CLAUDE_CODE_DISABLE_BACKGROUND_TASKS</code><code>CLAUDE_CODE_DISABLE_CLAUDE_MDS</code><code>CLAUDE_CODE_DISABLE_COMMAND_INJECTION_CHECK</code><code>CLAUDE_CODE_DISABLE_CRON</code><code>CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS</code><code>CLAUDE_CODE_DISABLE_FAST_MODE</code><code>CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY</code><code>CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING</code><code>CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS</code><code>CLAUDE_CODE_DISABLE_LEGACY_MODEL_REMAP</code><code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code><code>CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL</code><code>CLAUDE_CODE_DISABLE_PRECOMPACT_SKIP</code><code>CLAUDE_CODE_DISABLE_TERMINAL_TITLE</code><code>CLAUDE_CODE_DISABLE_THINKING</code><code>CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL</code><code>CLAUDE_CODE_DONT_INHERIT_ENV</code><code>CLAUDE_CODE_EAGER_FLUSH</code><code>CLAUDE_CODE_EFFORT_LEVEL</code><code>CLAUDE_CODE_EMIT_TOOL_USE_SUMMARIES</code><code>CLAUDE_CODE_ENABLE_CFC</code><code>CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING</code><code>CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION</code><code>CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING</code><code>CLAUDE_CODE_ENABLE_TASKS</code><code>CLAUDE_CODE_ENABLE_TELEMETRY</code><code>CLAUDE_CODE_ENABLE_TOKEN_USAGE_ATTACHMENT</code><code>CLAUDE_CODE_ENHANCED_TELEMETRY_BETA</code><code>CLAUDE_CODE_ENTRYPOINT</code><code>CLAUDE_CODE_ENVIRONMENT_KIND</code><code>CLAUDE_CODE_ENVIRONMENT_RUNNER_VERSION</code><code>CLAUDE_CODE_EXIT_AFTER_FIRST_RENDER</code><code>CLAUDE_CODE_EXIT_AFTER_STOP_DELAY</code><code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS</code><code>CLAUDE_CODE_EXTRA_BODY</code><code>CLAUDE_CODE_EXTRA_METADATA</code><code>CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS</code><code>CLAUDE_CODE_FORCE_FULL_LOGO</code><code>CLAUDE_CODE_FORCE_GLOBAL_CACHE</code><code>CLAUDE_CODE_FRAME_TIMING_LOG</code><code>CLAUDE_CODE_GIT_BASH_PATH</code><code>CLAUDE_CODE_GLOB_HIDDEN</code><code>CLAUDE_CODE_GLOB_NO_IGNORE</code><code>CLAUDE_CODE_GLOB_TIMEOUT_SECONDS</code><code>CLAUDE_CODE_HOST_PLATFORM</code><code>CLAUDE_CODE_IDE_HOST_OVERRIDE</code><code>CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL</code><code>CLAUDE_CODE_IDE_SKIP_VALID_CHECK</code><code>CLAUDE_CODE_INCLUDE_PARTIAL_MESSAGES</code><code>CLAUDE_CODE_IS_COWORK</code><code>CLAUDE_CODE_MAX_OUTPUT_TOKENS</code><code>CLAUDE_CODE_MAX_RETRIES</code><code>CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY</code><code>CLAUDE_CODE_MCP_INSTR_DELTA</code><code>CLAUDE_CODE_NEW_INIT</code><code>CLAUDE_CODE_OAUTH_CLIENT_ID</code><code>CLAUDE_CODE_OAUTH_REFRESH_TOKEN</code><code>CLAUDE_CODE_OAUTH_SCOPES</code><code>CLAUDE_CODE_OAUTH_TOKEN</code><code>CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR</code><code>CLAUDE_CODE_ORGANIZATION_UUID</code><code>CLAUDE_CODE_OTEL_FLUSH_TIMEOUT_MS</code><code>CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS</code><code>CLAUDE_CODE_OTEL_SHUTDOWN_TIMEOUT_MS</code><code>CLAUDE_CODE_PERFETTO_TRACE</code><code>CLAUDE_CODE_PLAN_MODE_INTERVIEW_PHASE</code><code>CLAUDE_CODE_PLAN_MODE_REQUIRED</code><code>CLAUDE_CODE_PLAN_V2_AGENT_COUNT</code><code>CLAUDE_CODE_PLAN_V2_EXPLORE_AGENT_COUNT</code><code>CLAUDE_CODE_PLUGIN_CACHE_DIR</code><code>CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS</code><code>CLAUDE_CODE_PLUGIN_SEED_DIR</code><code>CLAUDE_CODE_PLUGIN_USE_ZIP_CACHE</code><code>CLAUDE_CODE_POST_FOR_SESSION_INGRESS_V2</code><code>CLAUDE_CODE_PROFILE_STARTUP</code><code>CLAUDE_CODE_PROXY_RESOLVES_HOSTS</code><code>CLAUDE_CODE_QUESTION_PREVIEW_FORMAT</code><code>CLAUDE_CODE_REMOTE</code><code>CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE</code><code>CLAUDE_CODE_REMOTE_MEMORY_DIR</code><code>CLAUDE_CODE_REMOTE_SEND_KEEPALIVES</code><code>CLAUDE_CODE_REMOTE_SESSION_ID</code><code>CLAUDE_CODE_RESUME_INTERRUPTED_TURN</code><code>CLAUDE_CODE_SAVE_HOOK_ADDITIONAL_CONTEXT</code><code>CLAUDE_CODE_SEARCH_HINTS_IN_LIST</code><code>CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS</code><code>CLAUDE_CODE_SESSION_ACCESS_TOKEN</code><code>CLAUDE_CODE_SHELL</code><code>CLAUDE_CODE_SHELL_PREFIX</code><code>CLAUDE_CODE_SIMPLE</code><code>CLAUDE_CODE_SKIP_BEDROCK_AUTH</code><code>CLAUDE_CODE_SKIP_FAST_MODE_NETWORK_ERRORS</code><code>CLAUDE_CODE_SKIP_FOUNDRY_AUTH</code><code>CLAUDE_CODE_SKIP_PROMPT_HISTORY</code><code>CLAUDE_CODE_SKIP_VERTEX_AUTH</code><code>CLAUDE_CODE_SSE_PORT</code><code>CLAUDE_CODE_STALL_TIMEOUT_MS_FOR_TESTING</code><code>CLAUDE_CODE_SUBAGENT_MODEL</code><code>CLAUDE_CODE_SUBPROCESS_ENV_SCRUB</code><code>CLAUDE_CODE_SYNC_PLUGIN_INSTALL</code><code>CLAUDE_CODE_SYNC_PLUGIN_INSTALL_TIMEOUT_MS</code><code>CLAUDE_CODE_SYNTAX_HIGHLIGHT</code><code>CLAUDE_CODE_TAGS</code><code>CLAUDE_CODE_TASK_LIST_ID</code><code>CLAUDE_CODE_TEST_FIXTURES_ROOT</code><code>CLAUDE_CODE_TMPDIR</code><code>CLAUDE_CODE_TMUX_PREFIX</code><code>CLAUDE_CODE_TMUX_PREFIX_CONFLICTS</code><code>CLAUDE_CODE_TMUX_SESSION</code><code>CLAUDE_CODE_USER_EMAIL</code><code>CLAUDE_CODE_USE_BEDROCK</code><code>CLAUDE_CODE_USE_CCR_V2</code><code>CLAUDE_CODE_USE_COWORK_PLUGINS</code><code>CLAUDE_CODE_USE_FOUNDRY</code><code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code><code>CLAUDE_CODE_USE_VERTEX</code><code>CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR</code><code>CLAUDE_CODE_WORKER_EPOCH</code><code>CLAUDE_CODE_WORKSPACE_HOST_PATHS</code><code>CLAUDE_CONFIG_DIR</code><code>CLAUDE_COWORK_MEMORY_EXTRA_GUIDELINES</code><code>CLAUDE_COWORK_MEMORY_PATH_OVERRIDE</code><code>CLAUDE_DEBUG</code><code>CLAUDE_ENABLE_STREAM_WATCHDOG</code><code>CLAUDE_ENV_FILE</code><code>CLAUDE_FORCE_DISPLAY_SURVEY</code><code>CLAUDE_REPL_MODE</code><code>CLAUDE_TMPDIR</code><code>DISABLE_AUTOUPDATER</code><code>DISABLE_AUTO_COMPACT</code><code>DISABLE_AUTO_MIGRATE_TO_NATIVE</code><code>DISABLE_BUG_COMMAND</code><code>DISABLE_CLAUDE_CODE_SM_COMPACT</code><code>DISABLE_COMPACT</code><code>DISABLE_COST_WARNINGS</code><code>DISABLE_DOCTOR_COMMAND</code><code>DISABLE_ERROR_REPORTING</code><code>DISABLE_EXTRA_USAGE_COMMAND</code><code>DISABLE_FEEDBACK_COMMAND</code><code>DISABLE_INSTALLATION_CHECKS</code><code>DISABLE_INSTALL_GITHUB_APP_COMMAND</code><code>DISABLE_INTERLEAVED_THINKING</code><code>DISABLE_LOGIN_COMMAND</code><code>DISABLE_LOGOUT_COMMAND</code><code>DISABLE_PROMPT_CACHING</code><code>DISABLE_PROMPT_CACHING_HAIKU</code><code>DISABLE_PROMPT_CACHING_OPUS</code><code>DISABLE_PROMPT_CACHING_SONNET</code><code>DISABLE_TELEMETRY</code><code>DISABLE_UPGRADE_COMMAND</code><code>HTTPS_PROXY</code><code>HTTP_PROXY</code><code>NO_PROXY</code><code>USE_API_CONTEXT_MANAGEMENT</code></div> </details> </section> <nav class="crumb"><a href="/claude-code-re/">← Back to all versions</a></nav>  </body></html>

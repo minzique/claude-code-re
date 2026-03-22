@@ -1,0 +1,336 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Base title="Research — The Claude Code Monitor">
+  <nav class="crumb"><a href={`${base}/`}>← Home</a></nav>
+
+  <header class="rhead">
+    <p class="kicker">Original research</p>
+    <h1>How Claude Code actually works</h1>
+    <p class="sub">Everything here was reverse-engineered from the native Bun-compiled binary. We extract and deobfuscate ~3,000 JavaScript modules per release using <a href="https://github.com/vicnaum/bun-demincer">bun-demincer</a>, then grep for patterns: beta flags, feature gates, endpoints, headers, env vars, model logic. Where static analysis wasn't enough, we captured live traffic through a reverse proxy (<code>ANTHROPIC_BASE_URL</code> override).</p>
+  </header>
+
+  <nav class="toc">
+    <a href="#user-agent">User-agent</a>
+    <a href="#headers">Headers</a>
+    <a href="#betas">Beta flags</a>
+    <a href="#context">Context windows</a>
+    <a href="#client-data">Client data</a>
+    <a href="#billing">Billing</a>
+    <a href="#feature-flags">Feature flags</a>
+    <a href="#codenames">Codenames</a>
+    <a href="#desktop">Desktop VM</a>
+    <a href="#env-vars">Env vars</a>
+    <a href="#endpoints">Endpoints</a>
+    <a href="#models">Models</a>
+  </nav>
+
+  <section class="card" id="user-agent">
+    <h2>User-agent fingerprinting</h2>
+    <p>Every request includes a user-agent that tells Anthropic exactly where the request came from:</p>
+    <pre><code>claude-cli/&lt;VERSION&gt; (external, &lt;ENTRYPOINT&gt;&lt;SDK_SUFFIX&gt;&lt;CLIENT_SUFFIX&gt;&lt;WORKLOAD_SUFFIX&gt;)</code></pre>
+    <p>The entrypoint changes depending on how the CLI was invoked. Running <code>claude -p</code> sends <code>sdk-cli</code>, not <code>cli</code>. VSCode and JetBrains extensions set their own values. The Agent SDK appends its version. Background tasks get a <code>workload/cron</code> suffix.</p>
+    <div class="flag-table">
+      <div class="ft-row"><code>cli</code><span>Interactive terminal (default)</span></div>
+      <div class="ft-row"><code>sdk-cli</code><span>Print mode (<code>-p</code> flag)</span></div>
+      <div class="ft-row"><code>vscode</code><span>VSCode extension</span></div>
+      <div class="ft-row"><code>jetbrains</code><span>JetBrains extension</span></div>
+      <div class="ft-row"><code>agent-sdk</code><span>Agent SDK</span></div>
+    </div>
+    <p>This is set via <code>CLAUDE_CODE_ENTRYPOINT</code>. The SDK version and client app name come from <code>CLAUDE_AGENT_SDK_VERSION</code> and <code>CLAUDE_AGENT_SDK_CLIENT_APP</code>.</p>
+  </section>
+
+  <section class="card" id="headers">
+    <h2>Default headers</h2>
+    <p>Every request carries these, regardless of auth method:</p>
+    <pre><code>x-app: cli
+anthropic-version: 2023-06-01
+anthropic-dangerous-direct-browser-access: true</code></pre>
+    <p>The Stainless SDK (which the CLI uses internally) adds its own set — platform, arch, runtime version, retry count, timeout. Streaming requests also get <code>X-Stainless-Helper-Method: stream</code>.</p>
+    <p>Auth splits into two paths. OAuth sends <code>Authorization: Bearer &lt;token&gt;</code>. API key auth sends <code>x-api-key</code>. Both get redacted in logs.</p>
+  </section>
+
+  <section class="card" id="betas">
+    <h2>Beta flag assembly</h2>
+    <p>The <code>anthropic-beta</code> header isn't static. It's assembled per-request based on model, platform, and feature gates. The builder function checks about ten conditions:</p>
+    <pre><code>if (!isHaiku)                    push("claude-code-20250219")
+if (isOAuth)                     push("oauth-2025-04-20")
+if (has1mSuffix)                 push("context-1m-2025-08-07")
+if (supportsThinking && !disabled) push("interleaved-thinking-2025-05-14")
+if (firstParty && tengu_quiet_hollow && !showSummaries)
+                                 push("redact-thinking-2026-02-12")
+if (firstParty && (envFlag || tengu_marble_anvil))
+                                 push("context-management-2025-06-27")
+if (supportsStructured && tengu_tool_pear)
+                                 push("structured-outputs-2025-12-15")
+if (firstParty && tengu_scarf_coffee)
+                                 push("tool-examples-2025-10-29")
+if (vertex && supportsWebSearch) push("web-search-2025-03-05")
+if (firstParty)                  push("prompt-caching-scope-2026-01-05")</code></pre>
+    <p>Users can inject custom betas via the <code>ANTHROPIC_BETAS</code> env var (comma-separated).</p>
+    <p>Bedrock strips a few of these before sending — interleaved thinking, 1M context, tool search, and tool examples all get filtered out on that platform.</p>
+    <p>One thing worth calling out: <strong>the <code>context-1m</code> beta is opt-in only.</strong> It requires a <code>[1m]</code> suffix in the model ID (e.g. <code>claude-opus-4-6[1m]</code>). It is not sent automatically for any model. Some third-party implementations get this wrong. There is a separate gate for automatic 1M — see <a href="#client-data">client data</a> below.</p>
+  </section>
+
+  <section class="card" id="context">
+    <h2>Context window logic</h2>
+    <p>The context window size isn't just "whatever the model supports." There's a decision tree:</p>
+    <ol>
+      <li>If the model ID has a <code>[1m]</code> suffix → 1,000,000</li>
+      <li>If the model's API info reports <code>max_input_tokens >= 100,000</code> → use that value</li>
+      <li>If the <code>context-1m</code> beta is active and the model supports it → 1,000,000</li>
+      <li>If <code>coral_reef_sonnet</code> is <code>"true"</code> in client data and the model is Sonnet 4.6 → 1,000,000</li>
+      <li>Otherwise → 200,000</li>
+    </ol>
+    <p>1M context is limited to <code>claude-sonnet-4*</code> (4.0, 4.5, 4.6) and <code>claude-opus-4-6</code>. It can be disabled entirely with <code>CLAUDE_CODE_DISABLE_1M_CONTEXT</code>.</p>
+
+    <h3>Output token limits</h3>
+    <div class="flag-table">
+      <div class="ft-row"><code>opus-4-6</code><span>64k default, 128k upper</span></div>
+      <div class="ft-row"><code>sonnet-4-6</code><span>32k default, 128k upper</span></div>
+      <div class="ft-row"><code>opus-4-5, sonnet-4*, haiku-4*</code><span>32k default, 64k upper</span></div>
+      <div class="ft-row"><code>opus-4-1, opus-4</code><span>32k default, 32k upper</span></div>
+      <div class="ft-row"><code>3-7-sonnet</code><span>32k default, 64k upper</span></div>
+      <div class="ft-row"><code>claude-3-opus</code><span>4,096 both</span></div>
+    </div>
+  </section>
+
+  <section class="card" id="client-data">
+    <h2>Client data endpoint</h2>
+    <p>OAuth users get their feature gates from a separate endpoint:</p>
+    <pre><code>GET &lt;BASE_API_URL&gt;/api/oauth/claude_cli/client_data
+Authorization: Bearer &lt;accessToken&gt;</code></pre>
+    <p>Requires the <code>user:profile</code> OAuth scope. Returns <code>{`{"client_data": {}}`}</code> for most accounts.</p>
+    <p>The only field we've found referenced in code is <code>coral_reef_sonnet</code>. When it's <code>"true"</code>, Sonnet 4.6 gets 1M context automatically without the <code>[1m]</code> suffix. This is how Anthropic can roll out 1M context to specific users without them having to change anything.</p>
+    <p>The response is cached locally. The CLI only refetches when stale, and skips the call entirely if <code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code> is set.</p>
+  </section>
+
+  <section class="card" id="billing">
+    <h2>Billing attribution</h2>
+    <p>Here's a weird one. The billing header isn't actually sent as an HTTP header. It's injected as plain text into the first system prompt block:</p>
+    <pre><code>system[0].text = "x-anthropic-billing-header: cc_version=2.1.80.a46; cc_entrypoint=sdk-cli; cch=00000;"</code></pre>
+    <p>The format: <code>cc_version=&lt;ver&gt;.&lt;modelId&gt;; cc_entrypoint=&lt;entrypoint&gt;; cch=00000; cc_workload=&lt;workload&gt;;</code></p>
+    <p>Gated by <code>tengu_attribution_header</code> (default: true). Disable with <code>CLAUDE_CODE_ATTRIBUTION_HEADER=false</code>.</p>
+  </section>
+
+  <section class="card" id="feature-flags">
+    <h2>Feature flags (tengu)</h2>
+    <p>The CLI uses a remote feature flag system with the <code>tengu_</code> prefix. Flags come from GrowthBook's CDN and are checked with a helper function. As of v2.1.81: 784 distinct flags.</p>
+    <p>Most are telemetry event names. The interesting ones are the behavioral gates:</p>
+    <div class="flag-table">
+      <div class="ft-row"><code>tengu_marble_anvil</code><span>Enables context management beta</span></div>
+      <div class="ft-row"><code>tengu_tool_pear</code><span>Enables structured outputs beta</span></div>
+      <div class="ft-row"><code>tengu_scarf_coffee</code><span>Enables tool examples beta</span></div>
+      <div class="ft-row"><code>tengu_quiet_hollow</code><span>Enables thinking redaction</span></div>
+      <div class="ft-row"><code>tengu_amber_flint</code><span>Agent teams (default: true)</span></div>
+      <div class="ft-row"><code>tengu_attribution_header</code><span>Billing header (default: true)</span></div>
+      <div class="ft-row"><code>tengu_penguins_off</code><span>Fast mode control</span></div>
+      <div class="ft-row"><code>tengu_coral_fern</code><span>Team memory directories</span></div>
+      <div class="ft-row"><code>tengu_herring_clock</code><span>Team memory sync</span></div>
+      <div class="ft-row"><code>tengu_mcp_elicitation</code><span>MCP elicitation support</span></div>
+      <div class="ft-row"><code>tengu_passport_quail</code><span>Memory extraction mode</span></div>
+      <div class="ft-row"><code>tengu_harbor_permissions</code><span>New permission system (v2.1.81+)</span></div>
+    </div>
+    <p>The flag names are deliberately obscure — <code>marble_anvil</code>, <code>scarf_coffee</code>, <code>quiet_hollow</code>. Probably auto-generated to avoid leaking intent through the name alone.</p>
+  </section>
+
+  <section class="card" id="codenames">
+    <h2>Internal codenames</h2>
+    <p>Anthropic uses animal and object-themed codenames. Some we've mapped, others are still opaque.</p>
+    <div class="flag-table">
+      <div class="ft-row"><code>Tengu</code><span>Telemetry + feature flag namespace. 786 events as of v2.1.81.</span></div>
+      <div class="ft-row"><code>Cowork</code><span>Desktop VM agent execution. Runs <code>coworkd</code> inside a Linux microVM.</span></div>
+      <div class="ft-row"><code>Teleport</code><span>Session transfer between local CLI and remote environments.</span></div>
+      <div class="ft-row"><code>Harbor</code><span>New permission system (v2.1.81+). Likely replacing the current trust dialog.</span></div>
+      <div class="ft-row"><code>Coral</code><span>Feature gate. <code>coral_reef_sonnet</code> controls automatic 1M context.</span></div>
+      <div class="ft-row"><code>Grove</code><span>Privacy/consent management.</span></div>
+      <div class="ft-row"><code>Ion</code><span>Preview environment at <code>ion-preview.claude.ai</code>.</span></div>
+      <div class="ft-row"><code>Pivot</code><span>Office file integration. Manifest at <code>pivot.claude.ai/manifest.xml</code>.</span></div>
+    </div>
+    <p>The Desktop app has its own set: PlushRaccoon, QuietPenguin, LouderPenguin, SparkleHedgehog, ChillingSloth, MidnightOwl, FloatingAtoll, YukonSilver, MemoryBalloon. GrowthBook flags for A/B testing different UI treatments.</p>
+  </section>
+
+  <section class="card" id="desktop">
+    <h2>Desktop VM architecture</h2>
+    <p>The Claude Desktop app doesn't just shell out to the CLI. It runs agent tasks inside lightweight Linux VMs using a custom Go binary called <code>coworkd</code>, packaged in an 11MB boot image (<code>smol-bin.img</code>).</p>
+    <ul>
+      <li><strong>Networking</strong>: gVisor handles userspace network isolation. The VM can't make arbitrary connections.</li>
+      <li><strong>Filesystem</strong>: go-fuse provides overlay mounts so the agent sees the host filesystem through a controlled view.</li>
+      <li><strong>HTTPS filtering</strong>: The VM generates an ephemeral CA and runs a MITM proxy (goproxy) on outbound traffic. This lets Anthropic filter which <code>anthropic-beta</code> headers the agent can send.</li>
+      <li><strong>Policy</strong>: Network allowlists and filesystem rules live in <code>/etc/srt-settings</code> inside the VM image.</li>
+    </ul>
+    <p>The macOS Electron app embeds a 35MB <code>swift_addon.node</code> native binary — a SwiftUI Markdown rendering engine. That's how the app gets native-looking text rendering inside an Electron window.</p>
+    <p>VM images download from <code>https://downloads.claude.ai/vms/linux/{'{arch}'}/{'{sha}'}</code> with hash verification from a separate endpoint.</p>
+  </section>
+
+  <section class="card" id="env-vars">
+    <h2>Environment variables</h2>
+    <p>The CLI reads ~200 environment variables. These are the ones that affect API behavior:</p>
+    <div class="flag-table">
+      <div class="ft-row"><code>ANTHROPIC_BASE_URL</code><span>Override the API endpoint. Useful for proxying.</span></div>
+      <div class="ft-row"><code>ANTHROPIC_API_KEY</code><span>API key authentication.</span></div>
+      <div class="ft-row"><code>ANTHROPIC_BETAS</code><span>Inject custom beta headers (comma-separated).</span></div>
+      <div class="ft-row"><code>ANTHROPIC_CUSTOM_HEADERS</code><span>Add arbitrary headers to requests.</span></div>
+      <div class="ft-row"><code>API_TIMEOUT_MS</code><span>Request timeout. Default: 600,000ms (10 min).</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_ENTRYPOINT</code><span>Sets entrypoint in user-agent. Default: <code>cli</code>.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_DISABLE_1M_CONTEXT</code><span>Forces 200k context for all models.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code><span>Skips client_data, telemetry, non-critical calls.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_ATTRIBUTION_HEADER</code><span>Set to <code>false</code> to disable billing header.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_ADDITIONAL_PROTECTION</code><span>Adds <code>x-anthropic-additional-protection: true</code>.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_USE_BEDROCK</code><span>Route through AWS Bedrock.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_USE_VERTEX</code><span>Route through GCP Vertex AI.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_USE_FOUNDRY</code><span>Route through Foundry.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_USE_POWERSHELL_TOOL</code><span>PowerShell tool (v2.1.81+).</span></div>
+      <div class="ft-row"><code>DISABLE_INTERLEAVED_THINKING</code><span>Suppress interleaved thinking beta.</span></div>
+      <div class="ft-row"><code>USE_API_CONTEXT_MANAGEMENT</code><span>Force context management beta.</span></div>
+      <div class="ft-row"><code>CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS</code><span>Suppress non-essential betas.</span></div>
+    </div>
+  </section>
+
+  <section class="card" id="endpoints">
+    <h2>API endpoints</h2>
+    <div class="flag-table">
+      <div class="ft-row"><code>/v1/messages</code><span>Chat completions</span></div>
+      <div class="ft-row"><code>/api/oauth/claude_cli/client_data</code><span>User feature gates</span></div>
+      <div class="ft-row"><code>/v1/oauth/token</code><span>OAuth token exchange (console.anthropic.com)</span></div>
+      <div class="ft-row"><code>/api/oauth/claude_cli/create_api_key</code><span>Programmatic key creation</span></div>
+      <div class="ft-row"><code>/api/claude_code/metrics</code><span>Telemetry</span></div>
+      <div class="ft-row"><code>/api/claude_cli_feedback</code><span>Feedback</span></div>
+      <div class="ft-row"><code>/api/claude_code_shared_session_transcripts</code><span>Session sharing</span></div>
+    </div>
+    <h3>Infrastructure</h3>
+    <div class="flag-table">
+      <div class="ft-row"><code>cdn.growthbook.io</code><span>Feature flag distribution</span></div>
+      <div class="ft-row"><code>mcp-proxy.anthropic.com</code><span>MCP proxy service</span></div>
+      <div class="ft-row"><code>platform.claude.com</code><span>Platform portal</span></div>
+      <div class="ft-row"><code>downloads.claude.ai</code><span>Desktop + VM images</span></div>
+      <div class="ft-row"><code>pivot.claude.ai</code><span>Office integration</span></div>
+      <div class="ft-row"><code>ion-preview.claude.ai</code><span>Preview environment</span></div>
+    </div>
+  </section>
+
+  <section class="card" id="models">
+    <h2>Model IDs in binary</h2>
+    <p>These model identifiers are hardcoded for capability checks. Some don't correspond to publicly available models yet.</p>
+    <div class="tgrid">
+      <code>claude-haiku-3-5</code>
+      <code>claude-haiku-4</code>
+      <code>claude-haiku-4-5</code>
+      <code>claude-haiku-4-5-20251001</code>
+      <code>claude-sonnet-3-7</code>
+      <code>claude-sonnet-4</code>
+      <code>claude-sonnet-4-20250514</code>
+      <code>claude-sonnet-4-5</code>
+      <code>claude-sonnet-4-5-20250929</code>
+      <code>claude-sonnet-4-6</code>
+      <code>claude-opus-4</code>
+      <code>claude-opus-4-0</code>
+      <code>claude-opus-4-1</code>
+      <code>claude-opus-4-1-20250805</code>
+      <code>claude-opus-4-20250514</code>
+      <code>claude-opus-4-5</code>
+      <code>claude-opus-4-5-20251101</code>
+      <code>claude-opus-4-6</code>
+    </div>
+    <p>Claude 3.x models don't get thinking, context management, or structured outputs. Claude 4.x Haiku gets most features on Bedrock/Vertex but not structured outputs on first-party. Opus 4.6 and Sonnet 4.6 get everything including 128k output tokens.</p>
+  </section>
+
+  <section class="card" id="system-prompts">
+    <h2>System prompt validation</h2>
+    <p>For OAuth sessions, the server validates that the system prompt starts with one of three identity prefixes:</p>
+    <pre><code>"You are Claude Code, Anthropic's official CLI for Claude."
+"You are Claude Code, ..., running within the Claude Agent SDK."
+"You are a Claude agent, built on Anthropic's Claude Agent SDK."</code></pre>
+    <p>Requests that don't match get rejected. The billing header gets prepended to this, before the identity prefix, as part of <code>system[0].text</code>.</p>
+  </section>
+
+  <footer class="pg-foot">
+    <a href={`${base}/`}>← Version monitor</a>
+    <span class="pg-note">Binary analysis of v2.1.80–2.1.81. No Anthropic docs were used as a source.</span>
+  </footer>
+</Base>
+
+<style>
+  .crumb { padding: 24px 0 0; font: 400 .78rem var(--sans); }
+
+  .rhead {
+    padding: 28px 0 24px;
+    border-bottom: 1px solid var(--border-strong);
+    margin-bottom: 20px;
+  }
+  .kicker {
+    font: 500 .7rem var(--mono);
+    color: var(--accent);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .rhead h1 { font: 500 2rem/1.1 var(--serif); letter-spacing: -.02em; margin-bottom: 10px; }
+  .sub { font: 300 .85rem/1.55 var(--sans); color: var(--text-secondary); max-width: 640px; }
+  .sub a { color: var(--accent); }
+
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 14px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    font: 400 .75rem var(--mono);
+  }
+  .toc a { color: var(--text-dim); }
+  .toc a:hover { color: var(--accent); text-decoration: none; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 22px 26px 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font: 500 1.05rem var(--serif);
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card h3 {
+    font: 500 .78rem var(--sans);
+    color: var(--accent);
+    margin: 18px 0 6px;
+  }
+  .card p { font-size: .87rem; line-height: 1.65; margin: 6px 0; color: var(--text); }
+  .card ul, .card ol { padding-left: 20px; font-size: .87rem; margin: 8px 0; }
+  .card li { margin: 4px 0; line-height: 1.55; }
+  .card strong { font-weight: 500; }
+  .card a { color: var(--accent); }
+
+  .flag-table { margin: 10px 0; }
+  .ft-row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .84rem;
+  }
+  .ft-row:last-child { border-bottom: none; }
+  .ft-row code { flex-shrink: 0; font-size: .73rem; }
+  .ft-row span { color: var(--text-secondary); font-size: .82rem; }
+
+  .tgrid { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+  .tgrid code { font-size: .7rem; padding: 2px 7px; white-space: nowrap; }
+
+  .pg-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+    font: 400 .78rem var(--sans);
+  }
+  .pg-note { font: 400 .68rem var(--mono); color: var(--text-dim); }
+</style>
