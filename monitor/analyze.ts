@@ -147,12 +147,37 @@ async function runClaudeAnalysis(
   outputFile: string,
 ): Promise<string> {
   const fullPrompt = `${promptText}\n\n---\n\n${context}`
+  const apiKey = process.env.ANTHROPIC_API_KEY
 
-  // Write prompt to temp file to avoid shell escaping issues
+  console.log(`    Running analysis (context: ${(fullPrompt.length / 1024).toFixed(0)}KB)...`)
+
+  if (apiKey) {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 4096,
+        messages: [{ role: "user", content: fullPrompt }],
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.text()
+      console.log(`    ⚠️  API error ${res.status}: ${err.slice(0, 200)}`)
+      return `[Analysis failed: HTTP ${res.status}]`
+    }
+    const data = await res.json() as any
+    const output = data.content?.[0]?.text || ""
+    console.log(`    ✓ ${(output.length / 1024).toFixed(0)}KB response (API)`)
+    return output
+  }
+
   const tmpFile = join(ROOT, ".tmp-analysis-prompt.md")
   writeFileSync(tmpFile, fullPrompt)
-
-  console.log(`    Running claude -p (context: ${(fullPrompt.length / 1024).toFixed(0)}KB)...`)
 
   const proc = Bun.spawn(
     ["claude", "-p", "--model", "claude-sonnet-4-6", "--max-turns", "1"],
@@ -166,8 +191,6 @@ async function runClaudeAnalysis(
 
   const output = await new Response(proc.stdout).text()
   const exitCode = await proc.exited
-
-  // Clean up
   try { require("fs").unlinkSync(tmpFile) } catch {}
 
   if (exitCode !== 0) {
@@ -176,7 +199,7 @@ async function runClaudeAnalysis(
     return `[Analysis failed: exit ${exitCode}]\n${stderr.slice(0, 500)}`
   }
 
-  console.log(`    ✓ ${(output.length / 1024).toFixed(0)}KB response`)
+  console.log(`    ✓ ${(output.length / 1024).toFixed(0)}KB response (CLI)`)
   return output
 }
 

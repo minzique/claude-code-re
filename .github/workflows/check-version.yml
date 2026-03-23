@@ -1,16 +1,72 @@
-name: Check for New Version
+name: Monitor & Extract
 
 on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
+    inputs:
+      force_version:
+        description: 'Force process a specific version'
+        required: false
 
 permissions:
-  contents: read
+  contents: write
   issues: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: monitor
+  cancel-in-progress: false
 
 jobs:
   check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.latest }}
+      changed: ${{ steps.version.outputs.changed }}
+      prev: ${{ steps.version.outputs.prev }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Restore version state
+        uses: actions/cache/restore@v4
+        with:
+          path: monitor/state
+          key: version-state
+
+      - name: Check version
+        id: version
+        run: |
+          if [ -n "${{ inputs.force_version }}" ]; then
+            echo "latest=${{ inputs.force_version }}" >> $GITHUB_OUTPUT
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "prev=forced" >> $GITHUB_OUTPUT
+          else
+            bun run monitor/check-version.ts --update --json > /tmp/result.json 2>&1
+            cat /tmp/result.json
+            latest=$(jq -r '.latest' /tmp/result.json)
+            prev=$(jq -r '.previousLatest // empty' /tmp/result.json)
+            changed=$(jq -r '.latestChanged' /tmp/result.json)
+            echo "latest=$latest" >> $GITHUB_OUTPUT
+            echo "changed=$changed" >> $GITHUB_OUTPUT
+            echo "prev=$prev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Save version state
+        if: inputs.force_version == ''
+        uses: actions/cache/save@v4
+        with:
+          path: monitor/state
+          key: version-state-${{ steps.version.outputs.latest }}
+
+  extract:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,38 +75,72 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Check version
-        id: version
+      - name: Install bun-demincer
         run: |
-          result=$(bun run monitor/check-version.ts --json 2>&1)
-          echo "$result"
-          latest=$(echo "$result" | jq -r '.latest')
-          prev=$(echo "$result" | jq -r '.previousLatest // empty')
-          changed=$(echo "$result" | jq -r '.latestChanged')
-          echo "latest=$latest" >> $GITHUB_OUTPUT
-          echo "changed=$changed" >> $GITHUB_OUTPUT
-          echo "prev=$prev" >> $GITHUB_OUTPUT
+          git clone --depth 1 https://github.com/vicnaum/bun-demincer.git pocs/bun-demincer
+          cd pocs/bun-demincer && bun install
 
-      - name: Create issue for new version
-        if: steps.version.outputs.changed == 'true'
+      - name: Fetch binary
+        run: bun run monitor/fetch-binary.ts ${{ needs.check.outputs.version }}
+
+      - name: Run bun-demincer pipeline
+        run: bun run monitor/run-pipeline.ts --version ${{ needs.check.outputs.version }} --no-analysis
+        timeout-minutes: 15
+
+      - name: Run AI analysis
+        if: env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          bun run monitor/analyze.ts ${{ needs.check.outputs.version }} \
+            $(ls signatures/diff-*-to-${{ needs.check.outputs.version }}.md 2>/dev/null | head -1 | xargs -I{} echo "--diff {}")
+        timeout-minutes: 10
+        continue-on-error: true
+
+      - name: Archive version
+        run: bun run monitor/archive.ts ${{ needs.check.outputs.version }}
+
+      - name: Build site
+        run: |
+          cd site && bun install && bun run build
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add signatures/ archive/ docs/
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "feat: extract v${{ needs.check.outputs.version }} signatures"
+          git push
+
+      - name: Create issue
         uses: actions/github-script@v7
         with:
           script: |
-            const latest = '${{ steps.version.outputs.latest }}'
-            const prev = '${{ steps.version.outputs.prev }}'
+            const ver = '${{ needs.check.outputs.version }}'
+            const prev = '${{ needs.check.outputs.prev }}'
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `New Claude Code version: ${latest}`,
-              body: [
-                `Claude Code **${prev}** → **${latest}** detected.`,
-                '',
-                'Run the pipeline locally to extract signatures:',
-                '```bash',
-                'cd monitor && make pipeline-version VERSION=' + latest,
-                '```',
-                '',
-                'Then commit signatures/ and push to trigger site rebuild.',
-              ].join('\n'),
+              title: `v${ver} extracted`,
+              body: `Claude Code **${prev}** → **${ver}** processed.\n\nSignatures extracted, diff generated, site rebuilt.`,
               labels: ['new-version'],
             })
+
+  deploy:
+    needs: extract
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

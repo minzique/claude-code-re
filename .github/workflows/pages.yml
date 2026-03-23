@@ -5,8 +5,8 @@ on:
     branches: [main]
     paths:
       - 'signatures/**'
+      - 'site/src/**'
       - 'monitor/build-site.ts'
-
   workflow_dispatch:
 
 permissions:
@@ -28,8 +28,8 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Build site
-        run: bun run monitor/build-site.ts
+      - name: Install and build
+        run: cd site && bun install && bun run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
