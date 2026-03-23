@@ -1,6 +1,6 @@
 {
   "version": "2.1.81",
-  "extractedAt": "2026-03-21T17:13:56.229Z",
+  "extractedAt": "2026-03-23T20:31:42.178Z",
   "betaFlags": [
     {
       "value": "advanced-tool-use-2025-11-20",
@@ -12,11 +12,11 @@
     },
     {
       "value": "bedrock-2023-05-31",
-      "sourceModule": "1589.js"
+      "sourceModule": "3890.js"
     },
     {
       "value": "ccr-byoc-2025-07-29",
-      "sourceModule": "3656.js"
+      "sourceModule": "2196.js"
     },
     {
       "value": "ccr-triggers-2026-01-30",
@@ -28,11 +28,11 @@
     },
     {
       "value": "context-1m-2025-08-07",
-      "sourceModule": "3163.js"
+      "sourceModule": "4760.js"
     },
     {
       "value": "context-management-2025-06-27",
-      "sourceModule": "0744.js"
+      "sourceModule": "0745.js"
     },
     {
       "value": "effort-2025-11-24",
@@ -48,11 +48,11 @@
     },
     {
       "value": "files-api-2025-04-14",
-      "sourceModule": "1323.js"
+      "sourceModule": "4760.js"
     },
     {
       "value": "interleaved-thinking-2025-05-14",
-      "sourceModule": "0744.js"
+      "sourceModule": "0745.js"
     },
     {
       "value": "mcp-client-2025-11-20",
@@ -80,7 +80,7 @@
     },
     {
       "value": "skills-2025-10-02",
-      "sourceModule": "1335.js"
+      "sourceModule": "1336.js"
     },
     {
       "value": "structured-outputs-2025-11-13",
@@ -96,11 +96,11 @@
     },
     {
       "value": "tool-examples-2025-10-29",
-      "sourceModule": "0744.js"
+      "sourceModule": "0745.js"
     },
     {
       "value": "tool-search-tool-2025-10-19",
-      "sourceModule": "0744.js"
+      "sourceModule": "0745.js"
     },
     {
       "value": "vertex-2023-10-16",
@@ -129,8 +129,8 @@
     },
     {
       "name": "tengu_accept_submitted",
-      "defaultValue": "{\n      toolName: l9(K.tool.na",
-      "sourceModule": "4469.js"
+      "defaultValue": "{\n            toolName: W_,",
+      "sourceModule": "4494.js"
     },
     {
       "name": "tengu_agent_color_set",
@@ -154,8 +154,8 @@
     },
     {
       "name": "tengu_agent_memory_loaded",
-      "defaultValue": "{ ...{}, scope: $.memory, sour",
-      "sourceModule": "3166.js"
+      "defaultValue": "{ ...{}, scope: _.memory, sour",
+      "sourceModule": "3887.js"
     },
     {
       "name": "tengu_agent_name_set",
@@ -244,8 +244,8 @@
     },
     {
       "name": "tengu_api_error",
-      "defaultValue": "tengu_api_success,\n      te",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n      model: T,\n      error:",
+      "sourceModule": "3854.js"
     },
     {
       "name": "tengu_api_key_keychain_error",
@@ -759,8 +759,8 @@
     },
     {
       "name": "tengu_bridge_repl_skipped",
-      "defaultValue": "{ reason: not_enabled }",
-      "sourceModule": "4460.js"
+      "defaultValue": "{ reason: registration_failed",
+      "sourceModule": "4458.js"
     },
     {
       "name": "tengu_bridge_repl_started",
@@ -864,8 +864,8 @@
     },
     {
       "name": "tengu_brief_mode_toggled",
-      "defaultValue": "tengu_brief_send,\n      ten",
-      "sourceModule": "3240.js"
+      "defaultValue": "{ enabled: G, gated: false, so",
+      "sourceModule": "4606.js"
     },
     {
       "name": "tengu_brief_send",
@@ -894,8 +894,8 @@
     },
     {
       "name": "tengu_cache_eviction_hint",
-      "defaultValue": "{ scope: session_end, last_r",
-      "sourceModule": "3273.js"
+      "defaultValue": "{ scope: conversation_clear,",
+      "sourceModule": "3938.js"
     },
     {
       "name": "tengu_cancel",
@@ -920,7 +920,7 @@
     {
       "name": "tengu_ccr_bundle_seed_enabled",
       "defaultValue": null,
-      "sourceModule": "3656.js"
+      "sourceModule": "3660.js"
     },
     {
       "name": "tengu_ccr_bundle_upload",
@@ -1069,8 +1069,8 @@
     },
     {
       "name": "tengu_code_indexing_tool_used",
-      "defaultValue": "{ tool: J, source: mcp, succ",
-      "sourceModule": "3119.js"
+      "defaultValue": "{ tool: N, source: cli, succ",
+      "sourceModule": "3873.js"
     },
     {
       "name": "tengu_code_prompt_ignored",
@@ -1104,8 +1104,8 @@
     },
     {
       "name": "tengu_compact_failed",
-      "defaultValue": "tengu_exit,\n      tengu_fli",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n          reason: no_summar",
+      "sourceModule": "3025.js"
     },
     {
       "name": "tengu_compact_streaming_retry",
@@ -1235,7 +1235,7 @@
     {
       "name": "tengu_defer_all_bn4",
       "defaultValue": "true",
-      "sourceModule": "2687.js"
+      "sourceModule": "2957.js"
     },
     {
       "name": "tengu_defer_caveat_m9k",
@@ -1409,8 +1409,8 @@
     },
     {
       "name": "tengu_feedback_survey_event",
-      "defaultValue": "{ event_type: followup_accept",
-      "sourceModule": "4648.js"
+      "defaultValue": "{\n            event_type: app",
+      "sourceModule": "4645.js"
     },
     {
       "name": "tengu_fgts",
@@ -1724,8 +1724,8 @@
     },
     {
       "name": "tengu_immediate_command_executed",
-      "defaultValue": "{\n                commandName:",
-      "sourceModule": "4697.js"
+      "defaultValue": "{ commandName: __.name }",
+      "sourceModule": "4624.js"
     },
     {
       "name": "tengu_immediate_model_command",
@@ -1734,8 +1734,8 @@
     },
     {
       "name": "tengu_init",
-      "defaultValue": "tengu_model_fallback_triggere",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n      entrypoint: claude,",
+      "sourceModule": "4788.js"
     },
     {
       "name": "tengu_input_bash",
@@ -1749,8 +1749,8 @@
     },
     {
       "name": "tengu_input_prompt",
-      "defaultValue": "{}",
-      "sourceModule": "3636.js"
+      "defaultValue": "{ is_negative: z, is_keep_goin",
+      "sourceModule": "4619.js"
     },
     {
       "name": "tengu_input_slash_invalid",
@@ -1795,7 +1795,7 @@
     {
       "name": "tengu_kairos_brief",
       "defaultValue": "false",
-      "sourceModule": "3184.js"
+      "sourceModule": "3601.js"
     },
     {
       "name": "tengu_kairos_brief_config",
@@ -1919,8 +1919,8 @@
     },
     {
       "name": "tengu_mcp_add",
-      "defaultValue": "{ scope: K, source: json, ty",
-      "sourceModule": "4781.js"
+      "defaultValue": "{\n            type: H,",
+      "sourceModule": "4731.js"
     },
     {
       "name": "tengu_mcp_auth_config_authenticate",
@@ -2589,8 +2589,8 @@
     },
     {
       "name": "tengu_paste_text",
-      "defaultValue": "{ pastedTextCount: T$ }",
-      "sourceModule": "4697.js"
+      "defaultValue": "{ pastedTextCount: m }",
+      "sourceModule": "4624.js"
     },
     {
       "name": "tengu_pasted_image_resize_attempt",
@@ -2639,8 +2639,8 @@
     },
     {
       "name": "tengu_permission_request_escape",
-      "defaultValue": "{}",
-      "sourceModule": "4495.js"
+      "defaultValue": "{ explainer_visible: w.visible",
+      "sourceModule": "4494.js"
     },
     {
       "name": "tengu_permission_request_option_selected",
@@ -2840,7 +2840,7 @@
     {
       "name": "tengu_quartz_lantern",
       "defaultValue": "false",
-      "sourceModule": "3713.js"
+      "sourceModule": "3711.js"
     },
     {
       "name": "tengu_query_after_attachments",
@@ -2904,8 +2904,8 @@
     },
     {
       "name": "tengu_reject_submitted",
-      "defaultValue": "{\n      toolName: l9(K.tool.na",
-      "sourceModule": "4469.js"
+      "defaultValue": "{\n          toolName: W_,",
+      "sourceModule": "4494.js"
     },
     {
       "name": "tengu_relink_walk_broken",
@@ -3049,8 +3049,8 @@
     },
     {
       "name": "tengu_session_file_read",
-      "defaultValue": "tengu_started,\n      tengu_",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n      totalLines: P,\n      r",
+      "sourceModule": "3892.js"
     },
     {
       "name": "tengu_session_forked_branches_fetched",
@@ -3114,8 +3114,8 @@
     },
     {
       "name": "tengu_session_resumed",
-      "defaultValue": "{\n        entrypoint: picker",
-      "sourceModule": "4726.js"
+      "defaultValue": "{ entrypoint: cli_flag, succ",
+      "sourceModule": "4788.js"
     },
     {
       "name": "tengu_session_search_toggled",
@@ -3400,7 +3400,7 @@
     {
       "name": "tengu_swinburne_dune",
       "defaultValue": "false",
-      "sourceModule": "2680.js"
+      "sourceModule": "2995.js"
     },
     {
       "name": "tengu_switch_to_subscription_notice_shown",
@@ -3435,7 +3435,7 @@
     {
       "name": "tengu_system_prompt_global_cache",
       "defaultValue": "false",
-      "sourceModule": "4411.js"
+      "sourceModule": "4410.js"
     },
     {
       "name": "tengu_tag_command_add",
@@ -3474,8 +3474,8 @@
     },
     {
       "name": "tengu_team_mem_entries_capped",
-      "defaultValue": "]",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n        total_entries: $.len",
+      "sourceModule": "3865.js"
     },
     {
       "name": "tengu_team_mem_file_edit",
@@ -3509,8 +3509,8 @@
     },
     {
       "name": "tengu_team_mem_sync_push",
-      "defaultValue": "tengu_team_mem_sync_started,",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n        success: false,",
+      "sourceModule": "3865.js"
     },
     {
       "name": "tengu_team_mem_sync_started",
@@ -3749,8 +3749,8 @@
     },
     {
       "name": "tengu_tool_use_diff_computed",
-      "defaultValue": "{\n            isWriteTool: tru",
-      "sourceModule": "3713.js"
+      "defaultValue": "{\n            isEditTool: true",
+      "sourceModule": "3711.js"
     },
     {
       "name": "tengu_tool_use_error",
@@ -3774,8 +3774,8 @@
     },
     {
       "name": "tengu_tool_use_granted_in_prompt_permanent",
-      "defaultValue": "tengu_tool_use_granted_in_pro",
-      "sourceModule": "3240.js"
+      "defaultValue": null,
+      "sourceModule": "3039.js"
     },
     {
       "name": "tengu_tool_use_granted_in_prompt_temporary",
@@ -3789,8 +3789,8 @@
     },
     {
       "name": "tengu_tool_use_rejected_in_prompt",
-      "defaultValue": "tengu_tool_use_success,",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n    ...Qk_(T, _.name, K",
+      "sourceModule": "3039.js"
     },
     {
       "name": "tengu_tool_use_show_permission_request",
@@ -3894,8 +3894,8 @@
     },
     {
       "name": "tengu_uncaught_exception",
-      "defaultValue": "tengu_unhandled_rejection,",
-      "sourceModule": "3240.js"
+      "defaultValue": "{ error_name: _.name }",
+      "sourceModule": "3274.js"
     },
     {
       "name": "tengu_unexpected_tool_result",
@@ -3949,8 +3949,8 @@
     },
     {
       "name": "tengu_voice_recording_started",
-      "defaultValue": "tengu_voice_toggled,\n      ",
-      "sourceModule": "3240.js"
+      "defaultValue": "{\n      focusTriggered: P.curr",
+      "sourceModule": "4391.js"
     },
     {
       "name": "tengu_voice_silent_drop_replay",
@@ -4004,18 +4004,18 @@
     },
     {
       "name": "tengu_worktree_kept",
-      "defaultValue": "{ commits: O, changed_files: R",
-      "sourceModule": "4345.js"
+      "defaultValue": "{ mid_session: true, commits:",
+      "sourceModule": "3808.js"
     },
     {
       "name": "tengu_worktree_removed",
-      "defaultValue": "{ commits: O, changed_files: R",
-      "sourceModule": "4345.js"
+      "defaultValue": "{ mid_session: true, commits:",
+      "sourceModule": "3808.js"
     },
     {
       "name": "tengu_write_claudemd",
       "defaultValue": "{}",
-      "sourceModule": "3713.js"
+      "sourceModule": "3711.js"
     },
     {
       "name": "tengu_ws_transport_closed",
