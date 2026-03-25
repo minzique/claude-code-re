@@ -4,6 +4,8 @@ claude-linux-x64
 Claude.app/
 npm-package/package/
 desktop/extracted/
+desktop/*.zip
+desktop/Claude.app/
 
 # Binaries (too large for git — download via make fetch)
 binaries/v*-*/claude
@@ -26,6 +28,8 @@ node_modules/
 site/node_modules/
 site/.astro/
 bun.lockb
+opencode-auth-research/*/node_modules/
+opencode-auth-research/*/dist/
 
 # OS
 .DS_Store
