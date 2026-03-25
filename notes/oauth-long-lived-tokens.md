@@ -392,25 +392,83 @@ anthropic-beta: oauth-2025-04-20
 
 For non-Haiku models, the server inspects the **system prompt** for an entitlement marker. Without it, the server returns a generic `{"error": {"type": "invalid_request_error", "message": "Error"}}`.
 
-**Any one** of the following in the system prompt satisfies this check:
+**Two paths to satisfy this check:**
 
-| Marker | Example |
-|--------|---------|
-| Billing header | `"x-anthropic-billing-header: cc_version=2.1.81; cc_entrypoint=cli;"` |
-| Claude Code identity | `"You are Claude Code, Anthropic's official CLI for Claude."` |
-| Agent SDK identity | `"You are Claude Code, Anthropic's official CLI for Claude, running within the Claude Agent SDK."` |
-| Generic agent identity | `"You are a Claude agent, built on Anthropic's Claude Agent SDK."` |
+#### Path A: Billing Header in System Prompt
 
-**NOT sufficient:**
-- `"You are Claude Code."` (partial match — rejected)
-- Any custom system prompt without the exact prefixes above
-- Omitting the system prompt entirely
+The billing header must be in a **key=value; format** with at least `cc_version` and `cc_entrypoint` keys:
 
-The billing header and identity prefixes are **checked server-side as text content within the `system` field** of the request body, NOT as HTTP headers.
+```json
+{"type": "text", "text": "x-anthropic-billing-header: cc_version=<any>; cc_entrypoint=<any>;"}
+```
+
+**What the server validates:**
+- Must have both `cc_version` and `cc_entrypoint` keys — either alone is rejected
+- Must be valid `key=value;` format — malformed payloads trigger: `"x-anthropic-billing-header is a reserved keyword and may not be used in the system prompt."`
+
+**What the server does NOT validate:**
+- `cc_version` value — `99.0.0`, empty string, anything works. No version checking.
+- `cc_entrypoint` value — `alien-spaceship`, `pi-agent`, anything works.
+- `cch` value — any string, or omit entirely.
+- `cc_workload` — accepts arbitrary values, or omit.
+- Model consistency — billing says `haiku` but request is `sonnet`: works.
+- Extra fields — `custom_field=hello;` accepted.
+- Correlation with HTTP headers — billing says `entrypoint=pi`, User-Agent says `claude-cli`: works.
+
+#### Path B: Identity Prefix in System Prompt
+
+One of three exact strings:
+
+| Identity | String |
+|----------|--------|
+| CLI | `You are Claude Code, Anthropic's official CLI for Claude.` |
+| SDK | `You are Claude Code, Anthropic's official CLI for Claude, running within the Claude Agent SDK.` |
+| Agent | `You are a Claude agent, built on Anthropic's Claude Agent SDK.` |
+
+**NOT sufficient:** `"You are Claude Code."` (partial — rejected)
+
+#### Position Rules (Critical)
+
+The entitlement marker must be in the **first system block**:
+
+| Format | Placement | Works? |
+|--------|-----------|--------|
+| `system: [{ text: "<marker>" }, { text: "custom" }]` | First block | ✓ |
+| `system: [{ text: "custom" }, { text: "<marker>" }]` | Second block | ✗ |
+| `system: "<marker>"` | Exact string match | ✓ |
+| `system: "<marker>\ncustom text"` | String with extra content | ✗ |
+| `system: "custom\n<marker>"` | Marker not at start | ✗ |
+
+The billing header (Path A) is more lenient — it can appear as a substring within a larger text block. Identity strings (Path B) must be the **complete and sole text** of the first system block or the entire string.
 
 ### Layer 3: Standard Auth
 
 The `Authorization: Bearer <token>` header must contain a valid, non-expired OAuth access token.
+
+### Fingerprinting Analysis
+
+**Server-enforced (blocking):**
+- `anthropic-beta: oauth-2025-04-20` — must be present as HTTP header
+- System prompt first block — must contain valid billing header or exact identity string
+
+**Not server-enforced (non-blocking, but likely logged):**
+
+| Signal | Real CLI Value | Spoofable? | Detection Risk |
+|--------|---------------|-----------|----------------|
+| `cc_version` | `2.1.81` (real version) | ✓ any value accepted | Low — but fake versions correlatable |
+| `cc_entrypoint` | `cli`, `claude-code-github-action`, `sdk-ts` | ✓ any value accepted | **Medium** — unknown values are obvious |
+| `User-Agent` | `claude-cli/2.1.81 (external, cli)` | ✓ not checked | Low — but absence is a signal |
+| `x-app` | `cli` | ✓ not checked | Low |
+| `x-anthropic-billing-header` (HTTP) | Present with same values as system prompt | ✓ not checked | Low — but absence is a signal |
+| Tool schemas | Claude Code's specific tool names | Partial — tool names visible in request | **High** — different tools = obvious |
+| System prompt structure | billing first, identity second, then content | ✓ order is flexible | Low |
+| `cch` field | `00000` (hardcoded in CLI) | ✓ any value | Low |
+
+**Recommended approach for third-party tools:**
+```
+x-anthropic-billing-header: cc_version=2.1.81; cc_entrypoint=<your_app_name>;
+```
+Use a **real CLI version** (reduces version-mismatch signals) and an **honest entrypoint name** (transparent, reduces ToS risk from impersonation). The server accepts arbitrary entrypoint values — there is no allowlist.
 
 ### Minimum Required Headers/Body by Model
 
@@ -419,7 +477,7 @@ The `Authorization: Bearer <token>` header must contain a valid, non-expired OAu
 | `Authorization: Bearer` | ✓ | ✓ |
 | `anthropic-beta: oauth-2025-04-20` | ✓ | ✓ |
 | `anthropic-version: 2023-06-01` | ✓ | ✓ |
-| System prompt with billing/identity | ✗ | **✓** |
+| System prompt with billing/identity | ✗ | **✓** (first block) |
 | `x-app: cli` (HTTP header) | ✗ | ✗ |
 | `User-Agent: claude-cli/...` | ✗ | ✗ |
 | `x-anthropic-billing-header` (HTTP) | ✗ | ✗ |
@@ -428,16 +486,16 @@ The `Authorization: Bearer <token>` header must contain a valid, non-expired OAu
 ### Why the opencode-claude-auth Plugin Spoofs Headers
 
 The plugin adds the identity prefix, billing header, and Claude CLI user-agent because:
-1. **System prompt identity** — required for Sonnet/Opus to pass Layer 2
-2. **Billing header** — redundant (identity alone is sufficient) but matches CLI behavior
-3. **User-Agent/x-app** — not server-validated but may affect rate limiting or analytics
-4. **Tool name prefixing** (`mcp_` prefix) — OpenCode tool names differ from Claude Code; the server may validate tool schemas against known Claude Code tools
+1. **System prompt identity** — required for Sonnet/Opus to pass Layer 2 (must be first block)
+2. **Billing header in system prompt** — alternative to identity; also used for analytics/billing routing
+3. **User-Agent/x-app** — not server-validated but may affect rate limiting tiers or analytics bucketing
+4. **Tool name prefixing** (`mcp_` prefix) — OpenCode tool names differ from Claude Code; unclear if server validates tool schemas
 
 ### GitHub Actions Implications
 
 The `claude-code-action` GH Action runs the actual Claude Code CLI binary, which naturally includes all required headers, billing markers, and system prompt identity. The `CLAUDE_CODE_OAUTH_TOKEN` env var is consumed by the CLI exactly like a normal OAuth session — the CLI handles all server-side validation requirements automatically.
 
-For **third-party tools** (Pi, OpenCode, custom scripts) using OAuth tokens directly, you **must** include one of the identity/billing markers in the system prompt for Sonnet/Opus models.
+For **third-party tools** (Pi, OpenCode, custom scripts) using OAuth tokens directly, you **must** include one of the identity/billing markers in the system prompt for Sonnet/Opus models. The billing header approach is recommended as it allows custom entrypoint identification without impersonating Claude Code.
 
 ---
 
