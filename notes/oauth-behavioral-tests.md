@@ -272,6 +272,41 @@ Use the billing header instead of identity prefix:
 - No tool hallucination
 - No Claude Code persona
 
+---
+
+## Server Injection vs Model Knowledge
+
+**Question**: When Claude lists Claude Code tools after seeing the identity prefix, is this a hidden server-side system prompt injection, or the model's own training knowledge?
+
+**Answer**: It's **model behavior** (training knowledge), not API injection.
+
+### Evidence
+
+**Token count comparison** — identical system content, different auth paths:
+
+| Test | System Prompt | Input Tokens |
+|------|--------------|:---:|
+| Identity as first block | `["You are Claude Code...", "Be brief."]` | 26 |
+| Billing header + identity in second block | `["x-anthropic-billing-header: ...", "You are Claude Code... Be brief."]` | 26 |
+| Minimal baseline (haiku) | `"Be brief."` | 11 |
+
+If the server injected a hidden prompt when seeing the identity prefix in the first block, the token count would be higher than the billing-header variant. They're identical — **no injection**.
+
+**Persona override test** — system says "You are a pirate captain":
+- Asked "What tools does Claude Code CLI have?"
+- Response: *"Arrr, ye be askin' the wrong scallywag, matey! I be a pirate captain, not some landlubber software engineer!"*
+- A server-injected prompt would override the pirate persona. It doesn't — **no injection**.
+
+**Knowledge without identity** — billing header only, no CC mention in system:
+- Asked "What tools does Claude Code CLI have? List the exact tool names."
+- Opus 4.6: Lists Read, Write, Edit, MultiEdit, Bash, Glob, Grep (correct)
+- Sonnet 4.5: Lists bash, edit, read, write, search (partially correct)
+- The model knows CC tools from **public training data** regardless of identity prefix.
+
+**Conclusion**: The identity prefix `"You are Claude Code..."` is just a system prompt instruction. It doesn't trigger any server-side injection. The model's ability to list Claude Code tools is parametric knowledge from training, similar to knowing Python syntax. Opus 4.6 has more accurate recall (correct tool names and casing) than Sonnet 4.5 (approximate names).
+
+---
+
 ### For maximum stealth
 
 Match exactly what Claude Code sends:
