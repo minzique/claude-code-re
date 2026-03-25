@@ -373,6 +373,74 @@ For headless agent use (which only needs completions), `user:inference` is suffi
 
 ---
 
+## Server-Side Validation (Empirically Tested)
+
+The Anthropic API server performs **three layers of validation** for OAuth tokens. These were determined by systematic header/body stripping against the production API.
+
+### Layer 1: OAuth Beta Gate (all models)
+
+```
+anthropic-beta: oauth-2025-04-20
+```
+
+**Required for ALL OAuth requests.** Without it, the server returns:
+```json
+{"error": {"type": "authentication_error", "message": "OAuth authentication is currently not supported."}}
+```
+
+### Layer 2: Entitlement Verification (Sonnet, Opus — not Haiku)
+
+For non-Haiku models, the server inspects the **system prompt** for an entitlement marker. Without it, the server returns a generic `{"error": {"type": "invalid_request_error", "message": "Error"}}`.
+
+**Any one** of the following in the system prompt satisfies this check:
+
+| Marker | Example |
+|--------|---------|
+| Billing header | `"x-anthropic-billing-header: cc_version=2.1.81; cc_entrypoint=cli;"` |
+| Claude Code identity | `"You are Claude Code, Anthropic's official CLI for Claude."` |
+| Agent SDK identity | `"You are Claude Code, Anthropic's official CLI for Claude, running within the Claude Agent SDK."` |
+| Generic agent identity | `"You are a Claude agent, built on Anthropic's Claude Agent SDK."` |
+
+**NOT sufficient:**
+- `"You are Claude Code."` (partial match — rejected)
+- Any custom system prompt without the exact prefixes above
+- Omitting the system prompt entirely
+
+The billing header and identity prefixes are **checked server-side as text content within the `system` field** of the request body, NOT as HTTP headers.
+
+### Layer 3: Standard Auth
+
+The `Authorization: Bearer <token>` header must contain a valid, non-expired OAuth access token.
+
+### Minimum Required Headers/Body by Model
+
+| | Haiku | Sonnet/Opus |
+|---|---|---|
+| `Authorization: Bearer` | ✓ | ✓ |
+| `anthropic-beta: oauth-2025-04-20` | ✓ | ✓ |
+| `anthropic-version: 2023-06-01` | ✓ | ✓ |
+| System prompt with billing/identity | ✗ | **✓** |
+| `x-app: cli` (HTTP header) | ✗ | ✗ |
+| `User-Agent: claude-cli/...` | ✗ | ✗ |
+| `x-anthropic-billing-header` (HTTP) | ✗ | ✗ |
+| `claude-code-20250219` beta | ✗ | ✗ |
+
+### Why the opencode-claude-auth Plugin Spoofs Headers
+
+The plugin adds the identity prefix, billing header, and Claude CLI user-agent because:
+1. **System prompt identity** — required for Sonnet/Opus to pass Layer 2
+2. **Billing header** — redundant (identity alone is sufficient) but matches CLI behavior
+3. **User-Agent/x-app** — not server-validated but may affect rate limiting or analytics
+4. **Tool name prefixing** (`mcp_` prefix) — OpenCode tool names differ from Claude Code; the server may validate tool schemas against known Claude Code tools
+
+### GitHub Actions Implications
+
+The `claude-code-action` GH Action runs the actual Claude Code CLI binary, which naturally includes all required headers, billing markers, and system prompt identity. The `CLAUDE_CODE_OAUTH_TOKEN` env var is consumed by the CLI exactly like a normal OAuth session — the CLI handles all server-side validation requirements automatically.
+
+For **third-party tools** (Pi, OpenCode, custom scripts) using OAuth tokens directly, you **must** include one of the identity/billing markers in the system prompt for Sonnet/Opus models.
+
+---
+
 ## Security Notes
 
 - The long-lived token has **`user:inference` scope only** — it cannot create sessions, access MCP servers, or upload files.
