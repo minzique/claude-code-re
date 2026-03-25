@@ -314,3 +314,67 @@ Match exactly what Claude Code sends:
 - HTTP headers: `x-app: cli`, `User-Agent: claude-cli/<version>`, billing HTTP header
 - Tool names in CC casing
 - Current CLI version in billing header
+
+---
+
+## Hidden System Prompt Investigation
+
+**Question**: Does the Anthropic API inject a hidden system prompt for raw `/v1/messages` calls?
+
+**Answer**: **No.** The raw API has no hidden system prompt.
+
+### Evidence
+
+**Token count proof**:
+
+| System Prompt | Input Tokens |
+|--------------|:---:|
+| None (empty string) | 8 |
+| `"Be brief."` | 11 |
+| Billing header only (array) | **8** ← stripped! |
+| Long billing header (array) | **8** ← still stripped! |
+| CC identity (string) | 22 |
+| CC identity + "Be brief." (array) | 25 |
+
+The billing header block is **extracted from the system prompt before tokenization** — it costs zero tokens regardless of length. This is server-side metadata extraction, not prompt content.
+
+If there were a hidden system prompt (like the ~50K character claude.ai web prompt), base input tokens would be >>12,000, not 8.
+
+**Behavioral proof** (empty system prompt, raw API):
+
+| Test | Raw API Behavior | claude.ai Web Behavior |
+|------|-----------------|----------------------|
+| Flattery | "I appreciate the kind words" ✓ | Forbidden ("never start with flattery") |
+| Date awareness | "I don't have access to real-time information" | Injected via `"The current date is..."` |
+| Emoji use | Uses freely (👋😊🎉✨) | Restricted unless user uses them first |
+| Self-identity | "I'm Claude, made by Anthropic" (generic) | Detailed web/app persona |
+
+### Known System Prompts (from public leaks)
+
+| Source | Prompt Size | Where It's Set |
+|--------|------------|----------------|
+| **claude.ai web/app** | ~50K chars | Server-side injection (not visible via API) |
+| **Claude Code CLI** | ~30K chars | Client-side, in the CLI binary (module 4411) |
+| **Raw API** | **None** | No injection — you get exactly what you send |
+
+The claude.ai web prompt includes: end_conversation tool, ask_user_input tool, anthropic_reminders system (image_reminder, cyber_warning, system_warning, ethics_reminder, ip_reminder, long_conversation_reminder), flattery prohibition, emoji restrictions, date injection, and more.
+
+The Claude Code CLI prompt includes: tool usage instructions, safety guidelines (malware refusal), code style rules, task management (TodoWrite), git workflow, PR creation, proactiveness guidelines.
+
+The raw API gets **neither** — just whatever system prompt you pass in the request body.
+
+### Billing Header Server-Side Extraction
+
+The server recognizes `x-anthropic-billing-header:` in the first system block and:
+1. **Parses** the key=value pairs (validates format)
+2. **Strips** it from the token count (0 cost)
+3. **Uses** it for billing/analytics routing
+4. **Does NOT** pass it to the model as part of the prompt
+
+This explains why the billing header has zero behavioral impact — the model never sees it.
+
+### Source: Public Prompt Leaks
+
+- `asgeirtj/system_prompts_leaks` on GitHub contains dumped claude.ai and Claude Code system prompts
+- `wunderwuzzi23/scratch` contains Claude Code system prompt (2025-05-25)
+- `LangGPT/awesome-claude-code` contains Claude Code system prompt documentation
