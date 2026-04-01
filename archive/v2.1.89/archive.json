@@ -1,0 +1,18 @@
+{
+  "version": "2.1.89",
+  "archivedAt": "2026-04-01T06:43:32.816Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.88-to-2.1.89.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 3168,
+    "appModules": 3167,
+    "vendorModules": 1,
+    "binarySize": 196886384
+  }
+}
