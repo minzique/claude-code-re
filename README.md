@@ -1,5 +1,7 @@
 # Claude Code Monitor
 
+> Research & tooling by **[@minzique](https://github.com/minzique)** · [@minzicat](https://x.com/minzicat)
+
 > **Disclaimer**: This is reverse-engineered, agent-assisted research. Extraction and analysis are partially automated using AI tooling. Findings come from static analysis of obfuscated/minified code and may be incomplete, outdated, or misinterpreted. Nothing here is official Anthropic documentation. Verify independently before relying on any of this.
 
 Automated reverse engineering and change tracking for the Claude Code CLI.
@@ -68,3 +70,7 @@ Original findings from binary analysis are on the [research page](https://minziq
 
 - [AprilNEA's blog post](https://aprilnea.me/en/blog/reverse-engineering-claude-code-antspace) on Claude Code Web internals (Firecracker VMs, environment-manager, Antspace)
 - [bun-demincer](https://github.com/vicnaum/bun-demincer) by vicnaum — the extraction tool that makes this possible
+
+## Author
+
+Built and maintained by **[@minzique](https://github.com/minzique)** ([X/Twitter](https://x.com/minzicat)).
