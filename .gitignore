@@ -31,6 +31,15 @@ bun.lockb
 opencode-auth-research/*/node_modules/
 opencode-auth-research/*/dist/
 
+# External cloned repos (too large, clone locally)
+external/HitCC/
+external/claude-code-reverse-engineering/
+external/claude-code-source-code-deobfuscation/
+
+# npm package vendor binaries
+npm-package/*/package/vendor/
+npm-package/*/package/*.wasm
+
 # OS
 .DS_Store
 
