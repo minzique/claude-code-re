@@ -184,6 +184,8 @@ Prompt: `"What are you? What tools do you have? Be specific about your capabilit
 
 **Rule**: Must have both `cc_version=<any>;` and `cc_entrypoint=<any>;` in valid `key=value;` format. Values are not validated.
 
+> **Update (April 2026):** These tests were conducted before server-side cch= enforcement. As of late March 2026, the cch= value is now validated server-side. Incorrect values result in rejection: "Fast mode is currently available in research preview in Claude Code." The algorithm was reverse-engineered from the compiled Bun binary's Zig code — see `notes/cch-signing-analysis.md` for the full algorithm (SHA-256 based, salt: `59cf53e54c78`). Our finding that arbitrary values were accepted at the time of testing remains valid as historical documentation.
+
 ---
 
 ## Position Tests
