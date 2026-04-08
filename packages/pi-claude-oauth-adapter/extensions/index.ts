@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
@@ -173,18 +173,47 @@ function extractDocsSection(systemPrompt: string): { docsSection: string; stripp
   return { docsSection, strippedPrompt };
 }
 
+function getPiPackageRoot(): string | null {
+  const cliPath = process.argv[1];
+  if (!cliPath) return null;
+
+  try {
+    const resolvedCliPath = realpathSync(cliPath);
+    return dirname(dirname(resolvedCliPath));
+  } catch {
+    return null;
+  }
+}
+
+function buildDynamicFallbackDocsSection(): string | null {
+  const piRoot = getPiPackageRoot();
+  if (!piRoot) return null;
+
+  const readmePath = join(piRoot, "README.md");
+  const docsPath = join(piRoot, "docs");
+  const examplesPath = join(piRoot, "examples");
+  return [
+    DOCS_MARKER,
+    `- Main documentation: ${readmePath}`,
+    `- Additional docs: ${docsPath}`,
+    `- Examples: ${examplesPath} (extensions, custom tools, SDK)`,
+    "- When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), pi packages (docs/packages.md)",
+    "- When working on pi topics, read the docs and examples, and follow .md cross-references before implementing",
+    "- Always read pi .md files completely and follow links to related docs (e.g., tui.md for TUI API details)",
+  ].join("\n");
+}
+
 function readFallbackDocsSection(): string | null {
   const override = process.env.PI_CLAUDE_OAUTH_DOCS_FILE;
-  const candidates = override
-    ? [resolve(override)]
-    : [join(dirname(PACKAGE_DIR), "fixtures", "pi-docs-only.txt")];
-
-  for (const path of candidates) {
-    if (!existsSync(path)) continue;
-    const content = readFileSync(path, "utf8").trim();
-    if (content.length > 0) return content;
+  if (override) {
+    const path = resolve(override);
+    if (existsSync(path)) {
+      const content = readFileSync(path, "utf8").trim();
+      if (content.length > 0) return content;
+    }
   }
-  return null;
+
+  return buildDynamicFallbackDocsSection();
 }
 
 function wrapDocsContext(docsSection: string): string {

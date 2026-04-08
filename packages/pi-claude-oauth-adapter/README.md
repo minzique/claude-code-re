@@ -22,7 +22,22 @@ pi install npm:pi-claude-oauth-adapter
 ```
 
 ### git
-Publish this package from its own repo root or install from a checked-out local path. Git installs work best when the package is the repo root.
+This package currently lives in a subdirectory, so npm is the intended distribution path for other users.
+
+## Publish
+
+From this package directory:
+
+```bash
+npm pack --dry-run
+npm publish --access public
+```
+
+Or from the repo root:
+
+```bash
+npm publish ./packages/pi-claude-oauth-adapter --access public
+```
 
 ## Config
 
