@@ -76,6 +76,7 @@ Installable package:
 - `/Users/minzi/Developer/claude-code-re/packages/pi-claude-oauth-adapter`
 - entrypoint: `/Users/minzi/Developer/claude-code-re/packages/pi-claude-oauth-adapter/extensions/index.ts`
 - package README: `/Users/minzi/Developer/claude-code-re/packages/pi-claude-oauth-adapter/README.md`
+- fallback docs context is now built dynamically from the active pi install path (no machine-specific packaged fixture)
 
 Current extension behavior for Anthropic OAuth runs:
 - `before_agent_start`: strip the pi docs-only section from the system prompt
@@ -132,6 +133,7 @@ Fresh checks from `~` with no `-e` flag now succeed:
 - script: `/Users/minzi/Developer/claude-code-re/monitor/check-claude-oauth-adapter.ts`
 - make target: `make oauth-adapter-check`
 - latest artifact: `/Users/minzi/Developer/claude-code-re/monitor/request-shape/artifacts/extension-adapter-check.json`
+- package publish smoke test: `cd packages/pi-claude-oauth-adapter && npm pack --dry-run`
 
 What it currently verifies:
 1. strip-only extension path does not route to extra-usage
