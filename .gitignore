@@ -21,7 +21,12 @@ archive/*/modules/
 
 # Monitor state
 monitor/state/
+monitor/request-shape/artifacts/
 .tmp-analysis-prompt.md
+
+# Local agent/runtime files
+.pi/
+excalidraw.log
 
 # Node
 node_modules/
