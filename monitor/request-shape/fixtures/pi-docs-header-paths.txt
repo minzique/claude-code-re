@@ -1,0 +1,5 @@
+Pi documentation (read only when the user asks about pi itself, its SDK, extensions, themes, skills, or TUI):
+- Main documentation: /Users/minzi/node_modules/@mariozechner/pi-coding-agent/README.md
+- Additional docs: /Users/minzi/node_modules/@mariozechner/pi-coding-agent/docs
+- Examples: /Users/minzi/node_modules/@mariozechner/pi-coding-agent/examples (extensions, custom tools, SDK)
+- When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), pi packages (docs/packages.md)
