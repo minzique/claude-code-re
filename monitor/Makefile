@@ -1,10 +1,13 @@
-.PHONY: check fetch extract diff pipeline analyze archive site cron-install cron-remove update-tools
+.PHONY: check check-json oauth-adapter-check fetch extract diff pipeline analyze archive site cron-install cron-remove update-tools
 
 check:
 	bun run check-version.ts --update
 
 check-json:
 	bun run check-version.ts --json
+
+oauth-adapter-check:
+	bun run check-claude-oauth-adapter.ts
 
 fetch:
 	@test -n "$(VERSION)" || (echo "Usage: make fetch VERSION=2.1.80" && exit 1)
