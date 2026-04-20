@@ -1,6 +1,6 @@
 {
   "version": "2.1.109",
-  "extractedAt": "2026-04-15T06:45:44.318Z",
+  "extractedAt": "2026-04-15T09:47:27.038Z",
   "betaFlags": [
     {
       "value": "advanced-tool-use-2025-11-20",
@@ -16,11 +16,11 @@
     },
     {
       "value": "bedrock-2023-05-31",
-      "sourceModule": "1502.js"
+      "sourceModule": "3905.js"
     },
     {
       "value": "ccr-byoc-2025-07-29",
-      "sourceModule": "3543.js"
+      "sourceModule": "3622.js"
     },
     {
       "value": "ccr-triggers-2026-01-30",
@@ -32,7 +32,7 @@
     },
     {
       "value": "context-1m-2025-08-07",
-      "sourceModule": "3495.js"
+      "sourceModule": "1365.js"
     },
     {
       "value": "context-management-2025-06-27",
@@ -52,7 +52,7 @@
     },
     {
       "value": "files-api-2025-04-14",
-      "sourceModule": "4885.js"
+      "sourceModule": "0145.js"
     },
     {
       "value": "interleaved-thinking-2025-05-14",
@@ -122,18 +122,18 @@
   "featureFlags": [
     {
       "name": "tengu_accept_feedback_mode_collapsed",
-      "defaultValue": "p",
-      "sourceModule": "4605.js"
+      "defaultValue": "N",
+      "sourceModule": "4609.js"
     },
     {
       "name": "tengu_accept_feedback_mode_entered",
-      "defaultValue": "p",
-      "sourceModule": "4605.js"
+      "defaultValue": "N",
+      "sourceModule": "4609.js"
     },
     {
       "name": "tengu_accept_submitted",
-      "defaultValue": "{\n      toolName: j7(K.tool.na",
-      "sourceModule": "4604.js"
+      "defaultValue": "{\n            toolName: i,",
+      "sourceModule": "4626.js"
     },
     {
       "name": "tengu_advisor_command",
@@ -187,8 +187,8 @@
     },
     {
       "name": "tengu_agent_memory_loaded",
-      "defaultValue": "{\n          ...false,",
-      "sourceModule": "3500.js"
+      "defaultValue": "{ ...false, scope: H.memory, s",
+      "sourceModule": "3638.js"
     },
     {
       "name": "tengu_agent_name_set",
@@ -312,8 +312,8 @@
     },
     {
       "name": "tengu_api_error",
-      "defaultValue": "{\n      model: _,\n      error:",
-      "sourceModule": "3895.js"
+      "defaultValue": "tengu_api_success,\n      te",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_api_key_keychain_error",
@@ -357,8 +357,8 @@
     },
     {
       "name": "tengu_api_success",
-      "defaultValue": "{\n      requestId: S,\n      qu",
-      "sourceModule": "4512.js"
+      "defaultValue": "{\n    model: H,\n    ...(_ !==",
+      "sourceModule": "3895.js"
     },
     {
       "name": "tengu_apiKeyHelper_missing_trust11",
@@ -508,7 +508,7 @@
     {
       "name": "tengu_auto_mode_config",
       "defaultValue": "{}",
-      "sourceModule": "2609.js"
+      "sourceModule": "3077.js"
     },
     {
       "name": "tengu_auto_mode_decision",
@@ -797,8 +797,8 @@
     },
     {
       "name": "tengu_bridge_message_received",
-      "defaultValue": "{ is_repl: false }",
-      "sourceModule": "4929.js"
+      "defaultValue": "{ is_repl: true }",
+      "sourceModule": "4565.js"
     },
     {
       "name": "tengu_bridge_min_version",
@@ -927,8 +927,8 @@
     },
     {
       "name": "tengu_brief_mode_toggled",
-      "defaultValue": "{\n                enabled: fal",
-      "sourceModule": "4459.js"
+      "defaultValue": "tengu_brief_send,\n      ten",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_brief_send",
@@ -967,8 +967,8 @@
     },
     {
       "name": "tengu_cache_eviction_hint",
-      "defaultValue": "{ scope: conversation_clear,",
-      "sourceModule": "3980.js"
+      "defaultValue": "{ scope: subagent_end, last_",
+      "sourceModule": "3079.js"
     },
     {
       "name": "tengu_cancel",
@@ -993,7 +993,7 @@
     {
       "name": "tengu_ccr_bundle_seed_enabled",
       "defaultValue": null,
-      "sourceModule": "3624.js"
+      "sourceModule": "3636.js"
     },
     {
       "name": "tengu_ccr_bundle_upload",
@@ -1043,7 +1043,7 @@
     {
       "name": "tengu_chomp_inflection",
       "defaultValue": "false",
-      "sourceModule": "3051.js"
+      "sourceModule": "4013.js"
     },
     {
       "name": "tengu_chrome_auto_enable",
@@ -1158,7 +1158,7 @@
     {
       "name": "tengu_cobalt_lantern",
       "defaultValue": "false",
-      "sourceModule": "4884.js"
+      "sourceModule": "3623.js"
     },
     {
       "name": "tengu_cobalt_raccoon",
@@ -1167,8 +1167,8 @@
     },
     {
       "name": "tengu_code_indexing_tool_used",
-      "defaultValue": "{ tool: N, source: cli, succ",
-      "sourceModule": "3864.js"
+      "defaultValue": "{ tool: R, source: mcp, succ",
+      "sourceModule": "2998.js"
     },
     {
       "name": "tengu_code_prompt_ignored",
@@ -1282,8 +1282,8 @@
     },
     {
       "name": "tengu_continue",
-      "defaultValue": "{ success: false, entrypoint:",
-      "sourceModule": "4929.js"
+      "defaultValue": "{ success: false }",
+      "sourceModule": "4941.js"
     },
     {
       "name": "tengu_continue_print",
@@ -1308,7 +1308,7 @@
     {
       "name": "tengu_coral_beacon",
       "defaultValue": "false",
-      "sourceModule": "4449.js"
+      "sourceModule": "3552.js"
     },
     {
       "name": "tengu_coral_fern",
@@ -1572,8 +1572,8 @@
     },
     {
       "name": "tengu_feedback_survey_event",
-      "defaultValue": "{ event_type: followup_accept",
-      "sourceModule": "4774.js"
+      "defaultValue": "{\n            event_type: app",
+      "sourceModule": "4768.js"
     },
     {
       "name": "tengu_fgts",
@@ -1758,7 +1758,7 @@
     {
       "name": "tengu_glacier_2xr",
       "defaultValue": "false",
-      "sourceModule": "2552.js"
+      "sourceModule": "3903.js"
     },
     {
       "name": "tengu_gleaming_fair",
@@ -1862,8 +1862,8 @@
     },
     {
       "name": "tengu_headless_mcp_prewait",
-      "defaultValue": "{\n    pendingBefore: K,\n    to",
-      "sourceModule": "4929.js"
+      "defaultValue": "tengu_init,\n      tengu_mcp",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_headless_plugin_install",
@@ -1883,7 +1883,7 @@
     {
       "name": "tengu_herring_clock",
       "defaultValue": "false",
-      "sourceModule": "4478.js"
+      "sourceModule": "2544.js"
     },
     {
       "name": "tengu_hook_output_persisted",
@@ -1932,8 +1932,8 @@
     },
     {
       "name": "tengu_immediate_command_executed",
-      "defaultValue": "{\n                commandName:",
-      "sourceModule": "4832.js"
+      "defaultValue": "{ commandName: r.name }",
+      "sourceModule": "4739.js"
     },
     {
       "name": "tengu_immediate_model_command",
@@ -2207,8 +2207,8 @@
     },
     {
       "name": "tengu_mcp_channel_message",
-      "defaultValue": "{\n          content_length: M.",
-      "sourceModule": "4929.js"
+      "defaultValue": "{\n                          co",
+      "sourceModule": "4112.js"
     },
     {
       "name": "tengu_mcp_claudeai_proxy_401",
@@ -2527,8 +2527,8 @@
     },
     {
       "name": "tengu_model_fallback_triggered",
-      "defaultValue": "{\n                  original_m",
-      "sourceModule": "3893.js"
+      "defaultValue": "tengu_oauth_error,\n      te",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_model_picker_hotkey",
@@ -2543,7 +2543,7 @@
     {
       "name": "tengu_moth_copse",
       "defaultValue": "false",
-      "sourceModule": "4478.js"
+      "sourceModule": "2571.js"
     },
     {
       "name": "tengu_native_auto_updater_fail",
@@ -2717,8 +2717,8 @@
     },
     {
       "name": "tengu_oauth_flow_start",
-      "defaultValue": "{ loginWithClaudeAi: dH ?? tru",
-      "sourceModule": "4929.js"
+      "defaultValue": "{ loginWithClaudeAi: T }",
+      "sourceModule": "3411.js"
     },
     {
       "name": "tengu_oauth_manual_entry",
@@ -2752,8 +2752,8 @@
     },
     {
       "name": "tengu_oauth_success",
-      "defaultValue": "{ loginWithClaudeAi: dH ?? tru",
-      "sourceModule": "4929.js"
+      "defaultValue": "{ loginWithClaudeAi: Mb(j.scop",
+      "sourceModule": "3411.js"
     },
     {
       "name": "tengu_oauth_token_exchange_error",
@@ -2767,8 +2767,8 @@
     },
     {
       "name": "tengu_oauth_token_refresh_failure",
-      "defaultValue": "{ error: IH(K",
-      "sourceModule": "1209.js"
+      "defaultValue": "tengu_oauth_token_refresh_suc",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_oauth_token_refresh_lock_acquired",
@@ -2777,8 +2777,8 @@
     },
     {
       "name": "tengu_oauth_token_refresh_lock_acquiring",
-      "defaultValue": "{}",
-      "sourceModule": "1954.js"
+      "defaultValue": "tengu_oauth_token_refresh_loc",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_oauth_token_refresh_lock_error",
@@ -2792,8 +2792,8 @@
     },
     {
       "name": "tengu_oauth_token_refresh_lock_releasing",
-      "defaultValue": "{}",
-      "sourceModule": "1954.js"
+      "defaultValue": "tengu_oauth_token_refresh_loc",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_oauth_token_refresh_lock_retry",
@@ -2817,8 +2817,8 @@
     },
     {
       "name": "tengu_oauth_token_refresh_starting",
-      "defaultValue": "{}",
-      "sourceModule": "1954.js"
+      "defaultValue": "tengu_oauth_token_refresh_com",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_oauth_token_refresh_success",
@@ -2913,7 +2913,7 @@
     {
       "name": "tengu_paper_halyard",
       "defaultValue": "false",
-      "sourceModule": "3913.js"
+      "sourceModule": "2571.js"
     },
     {
       "name": "tengu_partial_compact",
@@ -2928,7 +2928,7 @@
     {
       "name": "tengu_passport_quail",
       "defaultValue": "false",
-      "sourceModule": "3884.js"
+      "sourceModule": "2109.js"
     },
     {
       "name": "tengu_paste_image",
@@ -2937,8 +2937,8 @@
     },
     {
       "name": "tengu_paste_text",
-      "defaultValue": "{ pastedTextCount: SA, pastedT",
-      "sourceModule": "4832.js"
+      "defaultValue": "{ pastedTextCount: U, pastedTe",
+      "sourceModule": "4739.js"
     },
     {
       "name": "tengu_pasted_image_resize_attempt",
@@ -3088,12 +3088,12 @@
     {
       "name": "tengu_plugin_official_mkt_git_fallback",
       "defaultValue": "true",
-      "sourceModule": "3919.js"
+      "sourceModule": "4781.js"
     },
     {
       "name": "tengu_plugin_remote_fetch",
-      "defaultValue": "{\n      source: marketplace_g",
-      "sourceModule": "3918.js"
+      "defaultValue": "{\n    source: H,\n    host: _ ?",
+      "sourceModule": "2334.js"
     },
     {
       "name": "tengu_plugin_uninstall_command",
@@ -3237,8 +3237,8 @@
     },
     {
       "name": "tengu_prompt_suggestion",
-      "defaultValue": "{\n            source: cli,",
-      "sourceModule": "4655.js"
+      "defaultValue": "{\n    source: sdk,\n    outco",
+      "sourceModule": "3051.js"
     },
     {
       "name": "tengu_prompt_suggestion_init",
@@ -3257,8 +3257,8 @@
     },
     {
       "name": "tengu_query_error",
-      "defaultValue": "{\n            assistantMessage",
-      "sourceModule": "3893.js"
+      "defaultValue": "tengu_sdk_control_roundtrip,",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_quiet_fern",
@@ -3327,18 +3327,18 @@
     },
     {
       "name": "tengu_reject_feedback_mode_collapsed",
-      "defaultValue": "p",
-      "sourceModule": "4605.js"
+      "defaultValue": "N",
+      "sourceModule": "4609.js"
     },
     {
       "name": "tengu_reject_feedback_mode_entered",
-      "defaultValue": "p",
-      "sourceModule": "4605.js"
+      "defaultValue": "N",
+      "sourceModule": "4609.js"
     },
     {
       "name": "tengu_reject_submitted",
-      "defaultValue": "{\n      toolName: j7(K.tool.na",
-      "sourceModule": "4604.js"
+      "defaultValue": "{\n          toolName: i,",
+      "sourceModule": "4626.js"
     },
     {
       "name": "tengu_relink_walk_broken",
@@ -3462,8 +3462,8 @@
     },
     {
       "name": "tengu_satin_quoll",
-      "defaultValue": "tNH = 2000;",
-      "sourceModule": "2926.js"
+      "defaultValue": "{}",
+      "sourceModule": "2691.js"
     },
     {
       "name": "tengu_scheduled_task_expired",
@@ -3492,8 +3492,8 @@
     },
     {
       "name": "tengu_sdk_init_handshake",
-      "defaultValue": "{\n      uptime_ms: Math.round(",
-      "sourceModule": "4929.js"
+      "defaultValue": "tengu_sdk_result,\n      ten",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_sdk_result",
@@ -3507,8 +3507,8 @@
     },
     {
       "name": "tengu_sdk_session_crash",
-      "defaultValue": "{ error_name: k7_(__",
-      "sourceModule": "4929.js"
+      "defaultValue": "tengu_sdk_stall,\n      teng",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_sdk_stall",
@@ -3522,13 +3522,13 @@
     },
     {
       "name": "tengu_sdk_ttft",
-      "defaultValue": "{ ttft_ms: p - B, model: Strin",
-      "sourceModule": "4923.js"
+      "defaultValue": "tengu_session_file_read,",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_sedge_lantern",
       "defaultValue": "false",
-      "sourceModule": "3048.js"
+      "sourceModule": "4013.js"
     },
     {
       "name": "tengu_sedge_lantern_config",
@@ -3612,8 +3612,8 @@
     },
     {
       "name": "tengu_session_resumed",
-      "defaultValue": "{\n            entrypoint: pic",
-      "sourceModule": "4865.js"
+      "defaultValue": "{\n                  entrypoint",
+      "sourceModule": "4941.js"
     },
     {
       "name": "tengu_session_search_toggled",
@@ -3767,8 +3767,8 @@
     },
     {
       "name": "tengu_started",
-      "defaultValue": "tengu_tool_use_error,",
-      "sourceModule": "2113.js"
+      "defaultValue": "{}",
+      "sourceModule": "4915.js"
     },
     {
       "name": "tengu_startup_manual_model_config",
@@ -3888,7 +3888,7 @@
     {
       "name": "tengu_sub_nomdrep_q7k",
       "defaultValue": "false",
-      "sourceModule": "4507.js"
+      "sourceModule": "3660.js"
     },
     {
       "name": "tengu_subagent_at_mention",
@@ -3903,7 +3903,7 @@
     {
       "name": "tengu_surreal_dali",
       "defaultValue": "false",
-      "sourceModule": "4884.js"
+      "sourceModule": "4883.js"
     },
     {
       "name": "tengu_switch_to_subscription_notice_shown",
@@ -3952,8 +3952,8 @@
     },
     {
       "name": "tengu_team_mem_entries_capped",
-      "defaultValue": "{\n        total_entries: A.len",
-      "sourceModule": "3857.js"
+      "defaultValue": "tengu_timer,\n    ]",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_team_mem_file_edit",
@@ -3987,8 +3987,8 @@
     },
     {
       "name": "tengu_team_mem_sync_push",
-      "defaultValue": "{\n    success: _.success,",
-      "sourceModule": "3857.js"
+      "defaultValue": "tengu_team_mem_sync_started,",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_team_mem_sync_started",
@@ -4097,8 +4097,8 @@
     },
     {
       "name": "tengu_teleport_resume_session",
-      "defaultValue": "{ source: H, session_id: D.id",
-      "sourceModule": "4302.js"
+      "defaultValue": "{ mode: direct }",
+      "sourceModule": "4941.js"
     },
     {
       "name": "tengu_teleport_source_decision",
@@ -4118,7 +4118,7 @@
     {
       "name": "tengu_terminal_sidebar",
       "defaultValue": "false",
-      "sourceModule": "4832.js"
+      "sourceModule": "4013.js"
     },
     {
       "name": "tengu_terminal_tab_status_setting_changed",
@@ -4153,7 +4153,7 @@
     {
       "name": "tengu_timer",
       "defaultValue": "{ event: startup, durationMs",
-      "sourceModule": "4929.js"
+      "sourceModule": "4941.js"
     },
     {
       "name": "tengu_tip_shown",
@@ -4188,7 +4188,7 @@
     {
       "name": "tengu_tool_pear",
       "defaultValue": null,
-      "sourceModule": "1936.js"
+      "sourceModule": "4508.js"
     },
     {
       "name": "tengu_tool_result_dedup",
@@ -4232,8 +4232,8 @@
     },
     {
       "name": "tengu_tool_use_cancelled",
-      "defaultValue": "{ messageID: A, toolName: j7(H",
-      "sourceModule": "4556.js"
+      "defaultValue": "{\n        toolName: j7(T.name",
+      "sourceModule": "3816.js"
     },
     {
       "name": "tengu_tool_use_denied_in_config",
@@ -4437,8 +4437,8 @@
     },
     {
       "name": "tengu_uncaught_exception",
-      "defaultValue": "{ error_name: H.name }",
-      "sourceModule": "3099.js"
+      "defaultValue": "tengu_unhandled_rejection,",
+      "sourceModule": "2113.js"
     },
     {
       "name": "tengu_unexpected_tool_result",
@@ -4607,8 +4607,8 @@
     },
     {
       "name": "tengu_worktree_created",
-      "defaultValue": "{\n            mid_session: tru",
-      "sourceModule": "3775.js"
+      "defaultValue": "{ tmux_enabled: T }",
+      "sourceModule": "4915.js"
     },
     {
       "name": "tengu_worktree_detection",
