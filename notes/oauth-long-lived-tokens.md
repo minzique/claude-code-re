@@ -506,3 +506,173 @@ For **third-party tools** (Pi, OpenCode, custom scripts) using OAuth tokens dire
 - There is no revocation endpoint documented. Changing your password or deauthorizing via claude.ai settings may invalidate tokens.
 - The `expires_in` parameter in the auth code exchange is a **client hint** — the server enforces scope-based limits.
 - OAuth tokens using `user:inference` scope bill against your **subscription** (Max/Pro), not API credits. This means subscription rate limits apply.
+
+---
+
+## Appendix — v2.1.114 Auth Mapping (Deep-Read Verified)
+
+**Date**: 2026-04-20  
+**Modules read in full**: `0526.js`, `0527.js`, `1955.js`, `1956.js`, `1209.js`, `1210.js`, `3402.js`, `0944.js`, `0124.js`, `4976.js`, `4835.js`, `4539.js`, `2115.js`, `2114.js`
+
+This appendix supersedes older/manual examples elsewhere in this file where they differ from the v2.1.114 source, especially token-endpoint and refresh-request-body details.
+
+### OAuth/API-Key Resolution Priority
+
+#### Auth source resolution for OAuth-capable requests
+
+`1955.js` `tV()` resolves the source; `1956.js` `e8()` materializes the credential; `1210.js` `DR_()` handles the CCR file-descriptor/well-known-file path.
+
+Important caveat: `tV()` is broader than `e8()`. It can report `apiKeyHelper` as the active auth source even though `1956.js` `e8()` does not materialize `apiKeyHelper` into an OAuth credential object.
+
+1. `ANTHROPIC_AUTH_TOKEN`, but only when `!lv_()` (`1955.js` `lv_()` treats `CLAUDE_CODE_REMOTE` and `CLAUDE_CODE_ENTRYPOINT === "claude-desktop"` as disqualifiers)
+2. `CLAUDE_CODE_OAUTH_TOKEN`
+3. `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` via `1210.js` `DR_()`
+4. CCR well-known OAuth-token file via `1210.js` `DR_()` fallback
+5. `apiKeyHelper`, again only when `!lv_()`
+6. persisted `claudeAiOauth` from `H1().read()` / `H1().readAsync()`, but only if `1955.js` `Fb(scopes)` still passes (`user:inference` present)
+7. none
+
+`1955.js` `mD()` is the higher-level gate. It disables this first-party Anthropic auth path when Bedrock/Vertex/Foundry/Anthropic-AWS/Mantle is selected, or when competing env/helper/file-descriptor auth is active outside remote/desktop mode. Special case: when `ANTHROPIC_UNIX_SOCKET` is set, `mD()` reduces to `!!process.env.CLAUDE_CODE_OAUTH_TOKEN`.
+
+#### API key path
+
+`1955.js` `n$()` is branchy rather than a single unconditional chain. In the normal path, the verified order is:
+
+1. `ANTHROPIC_API_KEY`, when it is not suppressed by `OR()` and either:
+   - `0124.js` `UBH()` is true (non-interactive, non-VSCode sessions), or
+   - the key hash is already approved in `w_().customApiKeyResponses.approved`
+2. CCR API key via `1210.js` `a06()` (`CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR` or its well-known-file fallback)
+3. `apiKeyHelper`
+4. stored `/login managed key` via `1956.js` `OkH()`:
+   - helper stdout / macOS Keychain lookup (`security find-generic-password`)
+   - fallback `w_().primaryApiKey`
+5. none
+
+Console OAuth does not persist as long-lived OAuth state. `3402.js` `ZDH()` calls `1209.js` `n06()` to mint/store an API key when `1955.js` `Fb(scopes)` is false.
+
+### Credential Sources and Storage
+
+- `1956.js` `e8()` turns `CLAUDE_CODE_OAUTH_TOKEN` into a static credential with `refreshToken: null`, `expiresAt: null`, `scopes: ["user:inference"]`, and no subscription/rate-limit metadata.
+- `1956.js` `e8()` gives the same static shape to `1210.js` `DR_()` results. These are inference-only, non-refreshing credentials.
+- `1955.js` `TkH()` only persists OAuth tokens when both conditions hold:
+  1. `1955.js` `Fb(scopes)` is true (`user:inference` present)
+  2. both `refreshToken` and `expiresAt` exist
+- The persisted payload is `claudeAiOauth = { accessToken, refreshToken, expiresAt, scopes, subscriptionType, rateLimitTier }` (`1955.js` `TkH()`).
+- `1955.js` `pC4()` checks `mtimeMs` for `path.join(s6(), ".credentials.json")` when refresh logic runs and clears the in-memory OAuth cache if it changed. `1955.js` `arH()` reads the same file asynchronously via `H1().readAsync()`.
+- `1210.js` `fwq()` reads FD-backed tokens from `/dev/fd/<n>`. In remote mode, a successful FD read is also persisted to a well-known file under `/home/claude/.claude/remote` for subprocess reuse (`1210.js` `o06()`).
+- Account/profile metadata is not only stored in the token blob. `3402.js` `ZDH()` and `1209.js` `wR_()` populate `oauthAccount` via `eGH()` / `U_()` with account UUID, org UUID, email, display name, billing type, and subscription timestamps. `rateLimitTier` remains on the OAuth credential/blob rather than app-state `oauthAccount`.
+
+### Token Exchange and Refresh Flow
+
+1. `1209.js` `zR_()` chooses the auth URL:
+   - console: `t8().CONSOLE_AUTHORIZE_URL`
+   - Claude AI: `t8().CLAUDE_AI_AUTHORIZE_URL`
+   It switches scopes between `[wb]` (`user:inference`) for inference-only flows and `CY6` for full flows, and chooses localhost vs manual redirect.
+2. `1209.js` `Q06()` exchanges the auth code with a JSON `POST` to `t8().TOKEN_URL`. `expires_in` is only sent when the caller supplied it.
+3. `3402.js` `ZDH()` installs the result:
+   - resets prior auth state (`hq_()`)
+   - stores account info via `eGH()`
+   - persists refreshable Claude AI tokens via `TkH()`
+   - always tries `l06()` role fetch
+   - if this is Claude AI auth (`Fb(scopes)`), it stays on OAuth
+   - otherwise it creates/stores an API key via `n06()`
+4. `1955.js` `fO()` / `xE6()` perform proactive refresh:
+   - `pC4()` invalidates stale cache on `.credentials.json` `mtimeMs` changes
+   - `1209.js` `Ad()` treats tokens as expired 5 minutes early
+   - only refreshable Claude AI tokens continue (`refreshToken` present and `Fb(scopes)` true)
+   - takes a directory lock with `yY(s6())`
+   - retries `ELOCKED` up to 5 times with 1-2s jitter
+   - re-reads tokens under the lock (`arH()`)
+   - calls `1209.js` `MlH()`
+   - persists via `TkH()`
+5. `1209.js` `MlH()` also uses a JSON `POST` to `t8().TOKEN_URL`, not form-encoded data. It requests a scope string, optionally requests `expires_in`, computes `expiresAt`, and backfills profile/billing metadata via `wR_()` when cached account info is incomplete.
+
+### 401 Recovery Flow
+
+`1955.js` `Ap()` deduplicates recovery per failed access token with `Map bE6`; the real logic is `1955.js` `BC4()`:
+
+1. clear caches (`KkH()`)
+2. re-read credentials from disk (`arH()`)
+3. if there is no refresh token:
+   - ask `0124.js` `CXH()` for an SDK callback
+   - if present, invoke it
+   - if it returns a different token, set `process.env.CLAUDE_CODE_OAUTH_TOKEN = <new token>`, clear cache, emit `tengu_oauth_401_sdk_callback_refreshed`, return `true`
+   - if it returns `null` or the same token, recovery fails
+4. otherwise, if disk already contains a different access token than the failed one, assume another process refreshed it and return `true` (`tengu_oauth_401_recovered_from_keychain`)
+5. otherwise force refresh via `fO(0, true)`
+
+### SDK OAuth Refresh Callback Path
+
+This is new in v2.1.114 and is split across four modules:
+
+- `0124.js` `s76()` / `CXH()` store and retrieve a process-global callback in app state.
+- `4976.js` `xs5()` registers that callback only when both conditions hold:
+  - `EH(process.env.CLAUDE_CODE_SDK_HAS_OAUTH_REFRESH)` is truthy
+  - `mE6.has(process.env.CLAUDE_CODE_ENTRYPOINT ?? "")`, where `mE6` is defined in `1956.js` as `{ "claude-desktop", "local-agent", "claude-vscode" }`
+- The registered callback is `() => z.requestOAuthTokenRefresh()` where `z` is the SDK structured-IO transport.
+- `4835.js` `requestOAuthTokenRefresh()` sends `{ subtype: "oauth_token_refresh" }` to the SDK host, applies a 30s timeout via `AbortSignal.timeout(eQ5)`, and returns `.accessToken`.
+- `1955.js` `BC4()` only consumes this callback when the local credential has no refresh token (static env/FD/host-supplied token cases).
+
+Adjacent path: `4539.js` exposes `getOAuthToken: async () => e8()?.accessToken ?? ""` to the Claude-in-Chrome bridge. That is token retrieval, not the 401 refresh callback.
+
+### Refresh-Token-Only Login Path
+
+`3402.js` `nF1()` now short-circuits browser login when `CLAUDE_CODE_OAUTH_REFRESH_TOKEN` is set.
+
+Required env:
+- `CLAUDE_CODE_OAUTH_REFRESH_TOKEN`
+- `CLAUDE_CODE_OAUTH_SCOPES` (space-separated; the command exits immediately if missing)
+
+Flow:
+1. split scopes from `CLAUDE_CODE_OAUTH_SCOPES`
+2. log `tengu_login_from_refresh_token`
+3. call `1209.js` `MlH(refreshToken, { scopes, expiresIn: sTH })`
+4. install with `ZDH()`
+5. validate org policy with `1955.js` `ja()`
+6. mark onboarding complete and log `tengu_oauth_success`
+
+Important nuance: the code *requests* `expiresIn: 31536000` (`0526.js` `LONG_LIVED_OAUTH_TOKEN_TTL_SECONDS`), but the server still decides whether that TTL is accepted for the requested scope set.
+
+### Proxy Auth Helper Path
+
+This is auth-adjacent, not Anthropic OAuth. `0944.js` `H2_()` exists to produce `Proxy-Authorization` material for outbound HTTP clients.
+
+Verified behavior:
+- gated by `CLAUDE_CODE_ENABLE_PROXY_AUTH_HELPER === "1"` (`0944.js` `i$H()`)
+- helper command comes from the separate proxy-auth-helper config object stored in `JGH.helper` via `0944.js` `WX6()`
+- project/local helpers are blocked until workspace trust is accepted (`0944.js` `Q8q()` + `JGH.trustAccepted()`)
+- cache TTL is `CLAUDE_CODE_PROXY_AUTH_HELPER_TTL_MS` or 300000 ms by default (`0944.js` `L84()`)
+- helper env includes `CLAUDE_CODE_PROXY_URL`, `CLAUDE_CODE_PROXY_HOST`, and optional `CLAUDE_CODE_PROXY_AUTHENTICATE`
+- failures return the last cached value when available; success updates `U8H`
+- `0944.js` `d8H()` threads the resulting header into Bun fetch options, while `XX6()` / `EQH()` / `PGH()` wire it into Bun, Axios, undici, and AWS SDK clients
+
+### Billing Header / Identity Changes Relevant to Auth
+
+- `2115.js` `wN_()` now owns billing-header construction:
+  - `cc_version=2.1.114.<suffix>`
+  - `cc_entrypoint=${process.env.CLAUDE_CODE_ENTRYPOINT ?? "unknown"}`
+  - `cch=00000` unless the provider is Bedrock / Anthropic AWS / Mantle
+  - optional `cc_workload=<workload>` from `1956.js` `sv_()` / `tv_()` AsyncLocalStorage
+- `2115.js` `zN_()` centralizes the three identity strings used in system prompts and selects between them:
+  - CLI: `qI6` (default, and also for Vertex)
+  - SDK: `joq` when `isNonInteractive && hasAppendSystemPrompt`
+  - Agent: `Doq` for other non-interactive SDK/agent sessions
+- `1956.js` `CT()` now identifies itself as `claude-code/2.1.114`.
+- `0527.js` `Ob8` changes the Claude AI authorize URL to `https://claude.com/cai/oauth/authorize`, but `CLAUDE_AI_ORIGIN` remains `https://claude.ai`.
+
+### Concrete Changes vs the v2.1.81 Note
+
+1. `0527.js` moves Claude AI authorization from `claude.ai/oauth/authorize` to `claude.com/cai/oauth/authorize`; token exchange/refresh stay on `https://platform.claude.com/v1/oauth/token`.
+2. `3402.js` adds a first-party refresh-token bootstrap path via `CLAUDE_CODE_OAUTH_REFRESH_TOKEN`.
+3. `0124.js` + `4976.js` + `4835.js` + `1955.js` add the SDK-host refresh callback path for static OAuth tokens.
+4. `0944.js` adds a dedicated proxy-auth-helper subsystem with trust gating and TTL caching.
+5. `1955.js` `BC4()` is materially richer than the older refresh-or-fail model: no-refresh-token cases try the SDK callback, while refreshable cases try disk token replacement before forced refresh.
+6. `2115.js` splits billing-header/identity construction into its own module and adds `cc_workload`.
+7. The v2.1.114 CLI source uses JSON bodies for both `Q06()` and `MlH()`. The older appendix's form-urlencoded refresh example is not what this client emits.
+8. Console OAuth is still just a bootstrap to a stored API key; the refreshable long-lived state lives only on the Claude AI path.
+9. `0526.js` `getOauthConfig()` / `t8()` adds an allowlisted `CLAUDE_CODE_CUSTOM_OAUTH_URL` path plus `CLAUDE_CODE_OAUTH_CLIENT_ID` override support.
+
+### Remaining Gaps From This Pass
+
+- I verified storage/watcher behavior directly from `1955.js`, `1956.js`, and `1210.js`, but I did not remap the helper symbols behind `H1()`, `s6()`, or `yY()` to their exact module numbers in v2.1.114.
+- `1955.js` `n$()` still contains one decompiled branch rendered as `if (EH(false))`; I did not recover the original guard symbol, so the normal-path API-key chain above is the verified part.

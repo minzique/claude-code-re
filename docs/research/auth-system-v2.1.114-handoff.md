@@ -2,24 +2,29 @@
 
 **Date**: 2026-04-20
 **Author**: Opus session (automated RE + manual verification)
-**Status**: Initial extraction. Needs deep-read pass on each module for completeness.
+**Status**: Deep-read pass done. Canonical findings are now in `notes/oauth-long-lived-tokens.md`, but a few helper-symbol remaps and wording caveats remain open.
 **Baseline**: Prior analysis was v2.1.81 (`notes/oauth-long-lived-tokens.md`). Module IDs shifted significantly.
+
+**Deep-read corrections**:
+- `1209.js` `Q06()` and `MlH()` both send JSON payloads to `https://platform.claude.com/v1/oauth/token`.
+- `0944.js` proxy auth uses its own helper config object (`JGH.helper` via `WX6()`), not `apiKeyHelper`.
+- `1955.js` `BC4()` is bifurcated: when no refresh token exists it only tries the SDK callback and then fails; the disk-token-mismatch and forced-refresh paths only run when a refresh token exists.
+- `0124.js` + `4976.js` + `4835.js` are the verified SDK OAuth refresh callback path.
+- The helper symbols behind `H1()`, `s6()`, and `yY()` were not remapped to exact module numbers in this pass; storage/watcher behavior was verified directly from `1955.js`, `1956.js`, and `1210.js`.
 
 ---
 
 ## Task for the Next Agent
 
-Map the v2.1.114 auth system end-to-end. Specific deliverables:
+The deep-read doc update is done. Remaining follow-up work is narrower:
 
-1. **Complete the module-by-module analysis** for each auth module listed below. Read the full decompiled source, not just grep hits. Document every function, its purpose, call relationships, and data flow.
-
-2. **Produce an updated auth resolution priority chain** (equivalent to the v2.1.81 `ML()`/`PH()` tables in `notes/oauth-long-lived-tokens.md`). The chain has changed — there are new paths (SDK callback, proxy auth helper, refresh-token-only login).
-
-3. **Diff against Pi's implementation** at `~/Developer/dotfiles-agents/packages/pi-claude-oauth-adapter/extensions/index.ts` and Pi's built-in OAuth at `/Users/minzi/node_modules/@mariozechner/pi-ai/dist/utils/oauth/anthropic.js`. Answer: why does Pi's token refresh fail after ~10 hours? Hypotheses listed below.
-
-4. **Document any new server-side validation** — the v2.1.81 analysis found 3 layers (OAuth beta gate, entitlement verification, standard auth). Check if v2.1.114 adds a 4th or changes any existing ones.
-
-5. **Update `notes/oauth-long-lived-tokens.md`** with findings. Keep the v2.1.81 analysis intact and add v2.1.114 sections.
+1. **Validate Pi against the new auth map** by diffing Claude Code v2.1.114 behavior against:
+   - `~/Developer/dotfiles-agents/packages/pi-claude-oauth-adapter/extensions/index.ts`
+   - `/Users/minzi/node_modules/@mariozechner/pi-ai/dist/utils/oauth/anthropic.js`
+   - `/Users/minzi/node_modules/@mariozechner/pi-coding-agent/dist/core/auth-storage.js`
+2. **Resolve the remaining helper-symbol remaps** (`H1()`, `s6()`, `yY()`) if exact module IDs matter.
+3. **Re-test server-side validation empirically** only if we think auth-routing rules may have changed since the earlier behavioral tests.
+4. **Turn the Pi gap analysis into an implementation plan** for the actual fix (likely in `dotfiles-agents` / Pi, not this repo).
 
 ---
 
@@ -50,22 +55,24 @@ All files at: `~/Developer/claude-code-re/pocs/bun-demincer/work/v2.1.114/decode
 | Module | Purpose |
 |--------|---------|
 | **2114.js** | Telemetry event names for OAuth (refresh success/fail, lock acquire/release, etc.) |
-| **0635.js** | Credentials file reader (`H1().read()?.claudeAiOauth`), `.credentials.json` |
-| **0843.js** | Credentials file watcher (`pC4()`) — checks `mtimeMs` of `.credentials.json` |
-| **1202.js** | Auth storage — file-level lock/unlock (`yY()`/release) |
+| **0635.js** | Unverified candidate for the `H1()` / `.credentials.json` helper; not remapped in the deep-read pass |
+| **0843.js** | Unverified candidate for the file-watcher helper; `pC4()` behavior was verified directly in `1955.js` |
+| **1202.js** | Unverified candidate for the file-lock helper; the `yY()` callsite is verified in `1955.js` |
 
 ---
 
 ## Auth Resolution Priority (v2.1.114)
 
-### OAuth Token Source (`tV()` in 1955.js)
+### Auth Source Resolution (`tV()` in 1955.js)
+
+`tV()` is broader than `e8()` credential materialization: it reports competing auth sources, including `apiKeyHelper`, even though `apiKeyHelper` is not turned into an OAuth credential object by `1956.js` `e8()`.
 
 ```
 1. ANTHROPIC_AUTH_TOKEN env var              (if not remote/desktop mode)
 2. CLAUDE_CODE_OAUTH_TOKEN env var           ← static long-lived token
 3. CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR   ← CCR file descriptor
 4. CCR_OAUTH_TOKEN_FILE well-known path      ← CCR fallback
-5. apiKeyHelper                              ← managed key from settings
+5. apiKeyHelper                              ← competing auth source from settings
 6. claude.ai OAuth (credentials.json)        ← interactive /login
 7. none → error
 ```
@@ -73,10 +80,11 @@ All files at: `~/Developer/claude-code-re/pocs/bun-demincer/work/v2.1.114/decode
 ### API Key Source (`n$()` in 1955.js)
 
 ```
-1. ANTHROPIC_API_KEY env var                 (if approved mode)
-2. apiKeyHelper                              (from settings.json)
-3. Stored primaryApiKey                      (from /login)
-4. none
+1. ANTHROPIC_API_KEY env var                 (subject to approval / mode gates)
+2. CCR API key path                          ← CLAUDE_CODE_API_KEY_FILE_DESCRIPTOR / well-known fallback
+3. apiKeyHelper                              (from settings.json)
+4. Stored primaryApiKey                      (from /login managed key)
+5. none
 ```
 
 ### 401 Recovery Flow (`BC4()` in 1955.js)
@@ -89,7 +97,7 @@ When a 401 is received:
    a. Check for SDK getOAuthToken callback (CXH())
    b. If SDK callback returns a NEW token → set CLAUDE_CODE_OAUTH_TOKEN env, emit tengu_oauth_401_sdk_callback_refreshed
    c. If SDK callback returns null or same token → give up
-4. IF credentials on disk have a DIFFERENT accessToken than the failed one:
+4. ELSE IF credentials on disk already have a DIFFERENT accessToken than the failed one:
    → Another process refreshed, use the new one (tengu_oauth_401_recovered_from_keychain)
 5. ELSE attempt refresh via fO() with file lock
 ```
@@ -128,7 +136,7 @@ When a 401 is received:
 
 | Env Var | Purpose |
 |---------|---------|
-| `CLAUDE_CODE_SDK_HAS_OAUTH_REFRESH` | If `"1"`, enables SDK host OAuth refresh callback for specific entrypoints (claude-desktop, local-agent, claude-vscode) |
+| `CLAUDE_CODE_SDK_HAS_OAUTH_REFRESH` | If truthy under `EH(...)`, enables SDK host OAuth refresh callback for specific entrypoints (claude-desktop, local-agent, claude-vscode) |
 | `CLAUDE_CODE_OAUTH_REFRESH_TOKEN` | Bootstrap login from a refresh token (no browser needed). Requires `CLAUDE_CODE_OAUTH_SCOPES`. |
 | `CLAUDE_CODE_OAUTH_SCOPES` | Scope string for refresh-token login (e.g., `"user:inference"`) |
 | `CLAUDE_CODE_ENABLE_PROXY_AUTH_HELPER` | Enable proxy auth helper binary execution |
@@ -144,12 +152,13 @@ When a 401 is received:
    - No browser interaction needed
 
 2. **SDK OAuth callback** (`CLAUDE_CODE_SDK_HAS_OAUTH_REFRESH`):
+   - Only when the env var is truthy under `EH(...)`
    - Only for entrypoints: `claude-desktop`, `local-agent`, `claude-vscode`
    - On startup: registers `requestOAuthTokenRefresh` which sends `{subtype: "oauth_token_refresh"}` to SDK host via control channel
-   - On 401: tries the registered callback (`CXH()`) before falling back to standard refresh
+   - On 401: this callback is only consulted when the local credential has no refresh token; otherwise standard refresh logic handles recovery
 
 3. **Proxy auth helper** (`CLAUDE_CODE_ENABLE_PROXY_AUTH_HELPER`):
-   - Executes an external binary (from settings `apiKeyHelper` path)
+   - Executes an external helper command from the dedicated proxy-auth-helper config (`0944.js` `JGH.helper`)
    - Caches result for TTL (default 300s)
    - Passes proxy URL and host as env vars to the helper
    - Has workspace trust gate — won't run project/local helpers until trust is confirmed
@@ -225,7 +234,7 @@ LONG_LIVED_TOKEN_TTL = 31536000  // 1 year, unchanged
 
 4. **Silent error swallowing** — Pi's `refreshOAuthTokenWithLock()` catches errors and returns `null` → `getApiKey()` returns `undefined` → "No API key for provider: anthropic". The actual error (wrong endpoint? invalid token? network?) is swallowed.
 
-5. **Token exchange POST format** — Pi sends `application/json` body. Claude Code's `MlH()` also sends JSON. But check whether the server now expects `application/x-www-form-urlencoded` for refresh (the original OAuth spec format). Our v2.1.81 research showed the refresh endpoint accepted form-encoded — verify Pi is sending the right content type.
+5. **Token exchange / refresh request parity** — Pi and Claude Code both send JSON bodies to `platform.claude.com/v1/oauth/token` in the current source. The remaining question is not JSON vs form-encoding; it is whether Pi matches Claude Code closely enough on endpoint choice, refresh timing, and recovery behavior.
 
 ### Current State
 
