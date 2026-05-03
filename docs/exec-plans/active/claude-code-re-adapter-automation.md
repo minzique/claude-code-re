@@ -8,10 +8,13 @@ Minzi wants the Claude Code reverse-engineering work and the `pi-claude-oauth-ad
 
 - [x] (2026-05-03 11:54Z) Inventory initial unpublished state across Claude Code RE and adapter worktrees.
 - [x] (2026-05-03 11:59Z) Run the Claude Code RE pipeline for latest Claude Code and archive the signature/diff/site outputs.
-- [ ] Compare latest extracted shapes against adapter assumptions and update adapter code/tests/docs.
-- [ ] Validate the adapter through Pi's package extension loading path and a live/non-destructive smoke.
-- [ ] Clean publication state: push repo work, publish or unblock `pi-claude-oauth-adapter@0.1.3+`, and point live Pi config at the intended package source.
-- [ ] Design and scaffold the automated Pi PR pipeline for extraction → diff → analysis → adapter PR → agent review.
+- [x] (2026-05-03 12:05Z) Compare latest extracted shapes against adapter assumptions and update adapter code/tests/docs (in dotfiles-agents PR #30, adapter 0.1.4).
+- [x] (2026-05-03 12:08Z) Validate the adapter through Pi's package extension loading path and a live/non-destructive smoke (TS strict + npm pack dry-run + live `pi -p` smoke with v2.1.126 billing header observed).
+- [~] Clean publication state: push repo work, publish or unblock `pi-claude-oauth-adapter@0.1.3+`, and point live Pi config at the intended package source.
+  - [x] (2026-05-03 12:13Z) Pushed `claude-code-re` PR #53 + `dotfiles-agents` PR #30.
+  - [ ] **BLOCKED**: npm publish for `pi-claude-oauth-adapter@0.1.4`. `~/.npmrc` token (`npm_DoBc...`, 2026-04-17) returns 401. Needs human `npm login` or fresh classic token.
+- [x] (2026-05-03 12:16Z) Design and scaffold the automated Pi PR pipeline for extraction → diff → analysis → adapter PR → agent review (`docs/automation/adapter-pr-pipeline.md` + `monitor/prepare-adapter-pr.ts` v0 classifier; tested against v2.1.126).
+- [ ] Standalone repo split for `pi-claude-oauth-adapter` (`minzique/pi-claude-oauth-adapter`).
 
 ## Surprises & Discoveries
 
