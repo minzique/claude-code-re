@@ -7,7 +7,7 @@ Minzi wants the Claude Code reverse-engineering work and the `pi-claude-oauth-ad
 ## Progress
 
 - [x] (2026-05-03 11:54Z) Inventory initial unpublished state across Claude Code RE and adapter worktrees.
-- [ ] Run the Claude Code RE pipeline for latest Claude Code and archive the signature/diff/site outputs.
+- [x] (2026-05-03 11:59Z) Run the Claude Code RE pipeline for latest Claude Code and archive the signature/diff/site outputs.
 - [ ] Compare latest extracted shapes against adapter assumptions and update adapter code/tests/docs.
 - [ ] Validate the adapter through Pi's package extension loading path and a live/non-destructive smoke.
 - [ ] Clean publication state: push repo work, publish or unblock `pi-claude-oauth-adapter@0.1.3+`, and point live Pi config at the intended package source.
@@ -17,6 +17,8 @@ Minzi wants the Claude Code reverse-engineering work and the `pi-claude-oauth-ad
 
 - `~/Developer/claude-code-re` was on `main`, ahead of `origin/main` by one commit (`44dce62 feat: v2.1.114 extraction + auth system handoff doc`) with many untracked artifacts including `archive/v2.1.118/`, `signatures/v2.1.118.json`, `signatures/diff-2.1.98-to-2.1.118.md`, `monitor/request-shape/`, `binaries/`, and `pocs/`.
 - `monitor/check-version.ts --json` reports latest Claude Code `2.1.126` and stable `2.1.118`; local monitor state still thought latest `2.1.114` and stable `2.1.98`.
+- Pipeline run `bun run monitor/run-pipeline.ts --version 2.1.126 --no-analysis` succeeded: 3505 modules loaded, v2.1.126 signature written, diff against v2.1.98 written, notification printed because Telegram env was unset, and archive files written. `bun run monitor/build-site.ts` then rebuilt `docs/index.html` with 26 versions rendered.
+- `monitor/build-site.ts` rewrote `docs/index.html` from the prior Astro-shaped generated output into the monitor script's standalone HTML shape, producing a large diff. Verify this is intended before committing the site output.
 - `~/Developer/dotfiles-agents` already contains the adapter `0.1.3` commits on `main` (`8ce008d`, `21dfabe`), but npm `pi-claude-oauth-adapter` is still published at `0.1.2`.
 - The old worktree `~/Developer/dotfiles-agents-oauth-health-status` is on a stale branch whose upstream is gone; its commits are equivalent to merged main commits but with different hashes.
 - Local `~/Developer/dotfiles-agents/home/.pi/agent/settings.json` has user-machine config drift (default provider/model/changelog version); avoid mixing that into adapter commits.
