@@ -42,6 +42,10 @@ interface ClassifierReport {
   prev: string
   generatedAt: string
   signatureDiff: string
+  /** The base version embedded in the diff file (parsed from the first line). */
+  signatureDiffBase: string | null
+  /** Warnings emitted while building the report (e.g. base mismatch). */
+  warnings: string[]
   decodedDir: string
   slots: SlotResult[]
   overallStatus: "clean" | "bump-only" | "needs-review" | "no-data"
@@ -107,13 +111,22 @@ const SLOT_DEFS: Array<{
   {
     slot: "systemPrompt.placement",
     hint: "billing block / identity / cache rules",
+    // TODO(automation): Webpack chunk IDs (4682/4687/4688/...) drift across
+    // bundle re-splits. Replace with content-addressable matchers when the
+    // pipeline starts emitting per-symbol locations.
     evidence: (d) => [
       join(d, "decoded/4682.js"),
       join(d, "decoded/4687.js"),
       join(d, "decoded/4688.js"),
     ],
     classify: (diff) => {
-      if (/system.*prompt|cache_control|claude code identity/i.test(diff))
+      // Match "system prompt" / "cache_control" / "claude code identity"
+      // in code/prose context only. Reject SCREAMING_SNAKE env-var names like
+      // CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT by requiring the surrounding chars on
+      // either side of "system" / "prompt" not to be uppercase letters or
+      // underscores.
+      const systemPromptCode = /(?<![A-Z_])system\W{0,3}prompt(?![A-Z_])/i
+      if (systemPromptCode.test(diff) || /cache_control\b/i.test(diff) || /claude code identity/i.test(diff))
         return { status: "shape-change", detail: "system prompt cache/identity mentioned in diff; review" }
       return { status: "unchanged", detail: "no system-prompt mention in diff" }
     },
@@ -191,36 +204,86 @@ function compareSemver(a: string, b: string): number {
   return 0
 }
 
-function locateDiff(prev: string, next: string): string | null {
-  // Prefer signatures/diff-{prev}-to-{next}.md, fallback to archive/v{next}/diff.md.
+interface DiffLocateResult {
+  path: string
+  /** Base version parsed from the diff's first line, or null if unparseable. */
+  base: string | null
+}
+
+function parseDiffBase(path: string): string | null {
+  try {
+    const first = readFileSync(path, "utf8").split(/\r?\n/, 1)[0] ?? ""
+    const m = first.match(/(\d+\.\d+\.\d+)\s*(?:\u2192|->)\s*(\d+\.\d+\.\d+)/)
+    return m ? m[1] : null
+  } catch {
+    return null
+  }
+}
+
+function locateDiff(prev: string, next: string): DiffLocateResult | null {
+  // 1. Best: signatures/diff-{prev}-to-{next}.md (incremental from prev exactly).
   const explicit = join(SIGS_DIR, `diff-${prev}-to-${next}.md`)
-  if (existsSync(explicit)) return explicit
+  if (existsSync(explicit)) return { path: explicit, base: prev }
+
+  // 2. Next best: any signatures/diff-{base}-to-{next}.md where base is the
+  // closest version <= prev (narrower window than the cumulative archive diff).
+  const fs = require("node:fs") as typeof import("node:fs")
+  if (existsSync(SIGS_DIR)) {
+    const candidates = fs
+      .readdirSync(SIGS_DIR)
+      .map((f: string) => f.match(/^diff-(\d+\.\d+\.\d+)-to-(\d+\.\d+\.\d+)\.md$/))
+      .filter((m): m is RegExpMatchArray => m !== null && m[2] === next)
+      .map((m) => ({ base: m[1], file: m[0] }))
+      .filter((c) => compareSemver(c.base, prev) <= 0)
+      .sort((a, b) => compareSemver(b.base, a.base)) // descending: closest base first
+    if (candidates[0]) {
+      return { path: join(SIGS_DIR, candidates[0].file), base: candidates[0].base }
+    }
+  }
+
+  // 3. Last resort: archive/v{next}/diff.md (cumulative from a fixed baseline).
+  // Read its actual base from the first line so the caller can warn when it
+  // doesn't match prev.
   const archive = join(ROOT, "archive", `v${next}`, "diff.md")
-  if (existsSync(archive)) return archive
+  if (existsSync(archive)) return { path: archive, base: parseDiffBase(archive) }
+
   return null
 }
 
 function buildReport(version: string, prev: string): ClassifierReport {
-  const diffPath = locateDiff(prev, version)
+  const located = locateDiff(prev, version)
   const decodedDir = join(DECODED_BASE, `v${version}`, "decoded")
+  const warnings: string[] = []
 
-  const diffMd = diffPath ? readFileSync(diffPath, "utf8") : ""
+  const diffMd = located ? readFileSync(located.path, "utf8") : ""
   const prevSig = readJsonIfExists(join(SIGS_DIR, `v${prev}.json`))
   const nextSig = readJsonIfExists(join(SIGS_DIR, `v${version}.json`))
 
+  if (located && located.base !== prev) {
+    warnings.push(
+      `diff base mismatch: requested prev=${prev} but loaded diff covers ${located.base ?? "unknown"}\u2192${version}; classifier matches against a wider surface than expected`,
+    )
+  }
+
   const slots: SlotResult[] = SLOT_DEFS.map((def) => {
     const c = def.classify(diffMd, prevSig, nextSig, decodedDir)
+    const evidence = def.evidence(decodedDir).filter((p) => existsSync(p))
+    if (c.status === "shape-change" && def.evidence(decodedDir).length > 0 && evidence.length === 0) {
+      warnings.push(
+        `slot ${def.slot} flagged shape-change but expected evidence files were not found in ${decodedDir} (Webpack chunk IDs may have shifted)`,
+      )
+    }
     return {
       slot: def.slot,
       status: c.status,
       detail: c.detail,
-      evidence: def.evidence(decodedDir).filter((p) => existsSync(p)),
+      evidence,
     }
   })
 
   let overall: ClassifierReport["overallStatus"] = "clean"
-  if (!diffPath || !nextSig) overall = "no-data"
-  else if (slots.some((s) => s.status === "shape-change" || s.status === "unknown")) overall = "needs-review"
+  if (!located || !nextSig) overall = "no-data"
+  else if (slots.some((s) => s.status === "shape-change")) overall = "needs-review"
   else if (slots.some((s) => s.status === "bump")) overall = "bump-only"
 
   const bumpKind: ClassifierReport["recommendedAdapterVersionBump"] =
@@ -230,7 +293,9 @@ function buildReport(version: string, prev: string): ClassifierReport {
     version,
     prev,
     generatedAt: new Date().toISOString(),
-    signatureDiff: diffPath ?? "(missing)",
+    signatureDiff: located?.path ?? "(missing)",
+    signatureDiffBase: located?.base ?? null,
+    warnings,
     decodedDir,
     slots,
     overallStatus: overall,
@@ -241,9 +306,15 @@ function buildReport(version: string, prev: string): ClassifierReport {
 function renderText(r: ClassifierReport): string {
   const lines: string[] = []
   lines.push(`Adapter PR classifier — Claude Code v${r.version} (prev v${r.prev})`)
-  lines.push(`Diff:     ${r.signatureDiff}`)
+  const diffSuffix = r.signatureDiffBase && r.signatureDiffBase !== r.prev ? `  [base: ${r.signatureDiffBase}]` : ""
+  lines.push(`Diff:     ${r.signatureDiff}${diffSuffix}`)
   lines.push(`Decoded:  ${r.decodedDir}`)
   lines.push(`Overall:  ${r.overallStatus}  (recommended adapter bump: ${r.recommendedAdapterVersionBump})`)
+  if (r.warnings.length > 0) {
+    lines.push("")
+    lines.push("Warnings:")
+    for (const w of r.warnings) lines.push(`  ! ${w}`)
+  }
   lines.push("")
   for (const s of r.slots) {
     const icon = s.status === "unchanged" ? "·" : s.status === "bump" ? "↑" : s.status === "shape-change" ? "!" : "?"

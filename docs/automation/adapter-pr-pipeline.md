@@ -72,13 +72,16 @@ production branches.
 **v1 (cron + nudge)**: a launchd/cron timer runs
 
 ```bash
+# planned shape (--auto + --apply not yet implemented; see Non-goals)
 bun run monitor/run-pipeline.ts && \
-bun run monitor/prepare-adapter-pr.ts --auto
+bun run monitor/prepare-adapter-pr.ts --auto --apply
 ```
 
 once a day. If `check-version` reports a new release, the script runs
-the full pipeline and opens a PR. The human is notified via the
-existing `monitor/notify.ts` channel (Telegram if configured) plus the
+the full pipeline and opens a PR. `--auto` will infer the version from
+monitor state, `--apply` will perform the deterministic patch + branch +
+`gh pr create`. The human is notified via the existing
+`monitor/notify.ts` channel (Telegram if configured) plus the
 GitHub PR notification.
 
 **v2 (agent loop)**: the PR opens with `@claude` mentioned in the body
@@ -116,22 +119,33 @@ For each slot the classifier emits:
 
 ## Output contract
 
+### Current (v0, ships in this PR)
+
 `monitor/prepare-adapter-pr.ts` writes:
 
-- A branch in the adapter-source repo (currently
-  `dotfiles-agents/packages/pi-claude-oauth-adapter`, eventually a
-  standalone repo).
-- A single commit per slot category (`fix(adapter): bump
-  DEFAULT_CLAUDE_CODE_VERSION to {ver}`, etc.) so reviewers can see
-  intent commit-by-commit.
-- A PR body containing:
+- A tabular classifier report to stdout (or JSON with `--json`).
+- A state file at `monitor/state/adapter-pr-{ver}.json` capturing the
+  full report so re-runs are idempotent.
+- Exit code: `0` clean / bump-only, `1` needs human review, `2` no
+  data (signature/diff missing).
+
+That is the entire v0 surface. The script does **not** touch any other
+repo or open any PR.
+
+### Planned (v1+, behind `--apply`)
+
+When `--apply` is wired up, the script will additionally:
+
+- Create a branch in the adapter-source repo (currently
+  `dotfiles-agents/packages/pi-claude-oauth-adapter`).
+- Make a single commit per slot category
+  (`fix(adapter): bump DEFAULT_CLAUDE_CODE_VERSION to {ver}`, etc.) so
+  reviewers can see intent commit-by-commit.
+- Open a PR via `gh pr create` whose body contains:
   - link to `signatures/diff-{prev}-to-{ver}.md`
   - classifier table (slot → status → evidence path)
   - checklist of follow-ups for `shape-change` slots
   - copy of the live smoke command for the reviewer to run
-- A local artifact at
-  `monitor/state/adapter-pr-{ver}.json` capturing the same data so the
-  pipeline can detect re-runs.
 
 ## Non-goals (v0)
 
