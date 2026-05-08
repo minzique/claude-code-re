@@ -339,7 +339,15 @@ function ensurePromptBlock(blocks: TextBlock[], ctx: ExtensionContext): TextBloc
 
   const systemPrompt = ctx.getSystemPrompt();
   const extracted = extractDocsSection(systemPrompt);
-  const text = extracted?.strippedPrompt ?? systemPrompt;
+  let text = extracted?.strippedPrompt ?? systemPrompt;
+  // Strip identity block — same as normalizeSystemBlocks does for explicit blocks.
+  // Without this, followUp turns (empty payload.system) re-inject it via getSystemPrompt(),
+  // triggering Claude Code billing mode and causing "out of extra usage" rejections.
+  if (text.startsWith(IDENTITY_BLOCK)) {
+    text = text.slice(IDENTITY_BLOCK.length).trimStart();
+  } else {
+    text = text.replace(new RegExp(`${IDENTITY_BLOCK.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\n?`, ''), '');
+  }
   if (!text.trim()) return blocks;
 
   const template = blocks.find((block) => block.cache_control)?.cache_control;
