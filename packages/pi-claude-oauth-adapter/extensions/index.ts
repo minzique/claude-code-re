@@ -62,7 +62,11 @@ interface PayloadLike {
   tools?: unknown;
 }
 
-let activeTurn: ActiveTurnState | null = null;
+const activeTurnStack: ActiveTurnState[] = [];
+
+function currentTurn(): ActiveTurnState | null {
+  return activeTurnStack.length > 0 ? activeTurnStack[activeTurnStack.length - 1]! : null;
+}
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -382,32 +386,34 @@ function normalizeSystemBlocks(blocks: TextBlock[], ctx: ExtensionContext, messa
 export default function claudeOauthAdapter(pi: ExtensionAPI) {
   pi.on("before_agent_start", (event, ctx) => {
     if (!shouldApply(ctx)) {
-      activeTurn = null;
+      activeTurnStack.push({ docsSection: "", shouldInject: false, mode: "none", prompt: "", timestamp: Date.now() });
       return;
     }
 
     const extracted = extractDocsSection(event.systemPrompt);
     const docsSection = extracted?.docsSection ?? readFallbackDocsSection();
     if (!docsSection) {
-      activeTurn = null;
+      activeTurnStack.push({ docsSection: "", shouldInject: false, mode: "none", prompt: "", timestamp: Date.now() });
       return;
     }
 
-    activeTurn = {
+    const state: ActiveTurnState = {
       docsSection,
       shouldInject: shouldInjectDocs(event.prompt),
       mode: getEnvMode(),
       prompt: event.prompt,
       timestamp: Date.now(),
     };
+    activeTurnStack.push(state);
 
     log("before_agent_start", {
       prompt: event.prompt,
-      shouldInject: activeTurn.shouldInject,
-      mode: activeTurn.mode,
+      shouldInject: state.shouldInject,
+      mode: state.mode,
       scope: getEnvScope(),
       docsLength: docsSection.length,
       strippedFromSystem: !!extracted,
+      stackDepth: activeTurnStack.length,
     });
 
     if (extracted) {
@@ -418,13 +424,15 @@ export default function claudeOauthAdapter(pi: ExtensionAPI) {
   });
 
   pi.on("context", (event, ctx) => {
-    if (!shouldApply(ctx) || !activeTurn) return;
-    const nextMessages = injectDocs(event.messages, activeTurn);
+    const turn = currentTurn();
+    if (!shouldApply(ctx) || !turn) return;
+    const nextMessages = injectDocs(event.messages, turn);
     log("context", {
-      mode: activeTurn.mode,
-      shouldInject: activeTurn.shouldInject,
+      mode: turn.mode,
+      shouldInject: turn.shouldInject,
       messagesBefore: summarizeMessages(event.messages),
       messagesAfter: summarizeMessages(nextMessages),
+      stackDepth: activeTurnStack.length,
     });
     return { messages: nextMessages };
   });
@@ -456,6 +464,7 @@ export default function claudeOauthAdapter(pi: ExtensionAPI) {
   });
 
   pi.on("agent_end", () => {
-    activeTurn = null;
+    activeTurnStack.pop();
+    log("agent_end", { stackDepth: activeTurnStack.length });
   });
 }
