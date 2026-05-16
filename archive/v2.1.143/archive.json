@@ -1,0 +1,18 @@
+{
+  "version": "2.1.143",
+  "archivedAt": "2026-05-16T00:49:04.091Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.98-to-2.1.143.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 3642,
+    "appModules": 3641,
+    "vendorModules": 1,
+    "binarySize": 207605280
+  }
+}
