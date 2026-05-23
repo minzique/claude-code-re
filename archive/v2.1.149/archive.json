@@ -1,0 +1,18 @@
+{
+  "version": "2.1.149",
+  "archivedAt": "2026-05-23T00:53:32.343Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.98-to-2.1.149.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 3815,
+    "appModules": 3814,
+    "vendorModules": 1,
+    "binarySize": 213070752
+  }
+}
