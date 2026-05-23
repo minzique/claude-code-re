@@ -1,0 +1,18 @@
+{
+  "version": "2.1.150",
+  "archivedAt": "2026-05-23T07:04:05.235Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.98-to-2.1.150.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 3815,
+    "appModules": 3814,
+    "vendorModules": 1,
+    "binarySize": 213070752
+  }
+}
