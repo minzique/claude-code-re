@@ -1,0 +1,18 @@
+{
+  "version": "2.1.165",
+  "archivedAt": "2026-06-05T07:39:10.722Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.98-to-2.1.165.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 3938,
+    "appModules": 3937,
+    "vendorModules": 1,
+    "binarySize": 219526944
+  }
+}
