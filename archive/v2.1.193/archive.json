@@ -1,0 +1,18 @@
+{
+  "version": "2.1.193",
+  "archivedAt": "2026-06-26T00:59:27.124Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.98-to-2.1.193.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 4199,
+    "appModules": 4198,
+    "vendorModules": 1,
+    "binarySize": 222248240
+  }
+}
