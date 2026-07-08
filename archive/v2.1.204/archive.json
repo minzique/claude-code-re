@@ -1,0 +1,18 @@
+{
+  "version": "2.1.204",
+  "archivedAt": "2026-07-08T02:43:35.875Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.98-to-2.1.204.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 4411,
+    "appModules": 4409,
+    "vendorModules": 2,
+    "binarySize": 236961904
+  }
+}
