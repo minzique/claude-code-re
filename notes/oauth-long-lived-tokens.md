@@ -321,6 +321,8 @@ x-app: cli
 user-agent: claude-cli/2.1.81 (external, cli)
 x-anthropic-billing-header: cc_version=2.1.81.<model>; cc_entrypoint=cli; cch=00000;
 Content-Type: application/json
+
+**Note**: The `cch=00000` value shown above was from the npm/JS build. The compiled Bun binary computes a real SHA-256 based hash for request signing. See [cch-signing-analysis.md](cch-signing-analysis.md) for details.
 ```
 - Obtained via OAuth flow (uses your Claude Max/Pro subscription)
 - Billed against your subscription usage limits (not API credits)
@@ -462,7 +464,7 @@ The `Authorization: Bearer <token>` header must contain a valid, non-expired OAu
 | `x-anthropic-billing-header` (HTTP) | Present with same values as system prompt | ✓ not checked | Low — but absence is a signal |
 | Tool schemas | Claude Code's specific tool names | Partial — tool names visible in request | **High** — different tools = obvious |
 | System prompt structure | billing first, identity second, then content | ✓ order is flexible | Low |
-| `cch` field | `00000` (hardcoded in CLI) | ✓ any value | Low |
+| `cch` field | SHA-256 hash (Bun binary) / `00000` (npm build) | ✗ **server-enforced** | **High** — incorrect values cause request rejection |
 
 **Recommended approach for third-party tools:**
 ```

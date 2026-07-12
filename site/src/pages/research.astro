@@ -112,8 +112,23 @@ Authorization: Bearer &lt;accessToken&gt;</code></pre>
   <section class="card" id="billing">
     <h2>Billing attribution</h2>
     <p>Here's a weird one. The billing header isn't actually sent as an HTTP header. It's injected as plain text into the first system prompt block:</p>
-    <pre><code>system[0].text = "x-anthropic-billing-header: cc_version=2.1.80.a46; cc_entrypoint=sdk-cli; cch=00000;"</code></pre>
-    <p>The format: <code>cc_version=&lt;ver&gt;.&lt;modelId&gt;; cc_entrypoint=&lt;entrypoint&gt;; cch=00000; cc_workload=&lt;workload&gt;;</code></p>
+    <pre><code>system[0].text = "x-anthropic-billing-header: cc_version=2.1.80.a46; cc_entrypoint=sdk-cli; cch=a1b2c; cc_version_suffix=d3e4f;"</code></pre>
+    
+    <h3>The cch= field is a computed hash</h3>
+    <p>The <code>cch=</code> field is <strong>not</strong> a static placeholder. It's a SHA-256 hash of the first user message:</p>
+    <pre><code>cch = SHA-256(first_user_message_text).substring(0, 5)</code></pre>
+    <p>The <code>cc_version_suffix=</code> uses a similar algorithm: hash a salt concatenated with sampled characters from the same input.</p>
+    
+    <h3>npm vs. Bun implementation</h3>
+    <p>The npm/JavaScript builds originally sent <code>cch=00000</code> (which is what we initially documented). The compiled Bun binary computes real hash values via native Zig code in the crypto module.</p>
+    
+    <h3>Server-side enforcement</h3>
+    <p>The API validates the <code>cch=</code> value. Requests with incorrect hashes are rejected from fast mode. This appears to be an anti-abuse mechanism to detect tampered or replayed requests.</p>
+    
+    <h3>Prompt cache breakage (issue #40652)</h3>
+    <p>The CLI's implementation has a critical bug: it performs find-and-replace of <code>cch=</code> across <strong>all message content</strong>, including historical tool results in the conversation. This mutates cached content, permanently breaking prompt caching for the entire session. Once the hash changes, every prior cache key is invalidated.</p>
+    
+    <p>The full format: <code>cc_version=&lt;ver&gt;.&lt;modelId&gt;; cc_entrypoint=&lt;entrypoint&gt;; cch=&lt;hash&gt;; cc_version_suffix=&lt;hash&gt;; cc_workload=&lt;workload&gt;;</code></p>
     <p>Gated by <code>tengu_attribution_header</code> (default: true). Disable with <code>CLAUDE_CODE_ATTRIBUTION_HEADER=false</code>.</p>
   </section>
 
@@ -128,7 +143,7 @@ Authorization: Bearer &lt;accessToken&gt;</code></pre>
       <div class="ft-row"><code>tengu_quiet_hollow</code><span>Enables thinking redaction</span></div>
       <div class="ft-row"><code>tengu_amber_flint</code><span>Agent teams (default: true)</span></div>
       <div class="ft-row"><code>tengu_attribution_header</code><span>Billing header (default: true)</span></div>
-      <div class="ft-row"><code>tengu_penguins_off</code><span>Fast mode control</span></div>
+      <div class="ft-row"><code>tengu_penguins_off</code><span>Fast mode gate — nullable string, non-null value disables fast mode with reason</span></div>
       <div class="ft-row"><code>tengu_coral_fern</code><span>Team memory directories</span></div>
       <div class="ft-row"><code>tengu_herring_clock</code><span>Team memory sync</span></div>
       <div class="ft-row"><code>tengu_mcp_elicitation</code><span>MCP elicitation support</span></div>
@@ -250,7 +265,7 @@ Authorization: Bearer &lt;accessToken&gt;</code></pre>
 
   <footer class="pg-foot">
     <a href={`${base}/`}>← Version monitor</a>
-    <span class="pg-note">Research by <a href="https://github.com/minzique">@minzique</a> · Binary analysis of v2.1.80–2.1.81. No Anthropic docs were used as a source.</span>
+    <span class="pg-note">Research by <a href="https://github.com/minzique">@minzique</a> · Binary analysis of v2.1.80–2.1.84. CCH signing algorithm reversed April 2026.</span>
   </footer>
 </Base>
 
