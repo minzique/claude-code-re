@@ -1,0 +1,18 @@
+{
+  "version": "2.1.218",
+  "archivedAt": "2026-07-23T02:46:23.220Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.98-to-2.1.218.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 4814,
+    "appModules": 4812,
+    "vendorModules": 2,
+    "binarySize": 255069680
+  }
+}
