@@ -120,6 +120,17 @@ export function diffSignatures(oldSig: any, newSig: any): DiffResult {
     sections.push({ category: "OAuth Scopes", ...scopeDiff, changed: [] })
   }
 
+  // Adapter-critical request fingerprints
+  const userAgentDiff = diffArrays(oldSig.userAgentPatterns || [], newSig.userAgentPatterns || [])
+  if (userAgentDiff.added.length || userAgentDiff.removed.length) {
+    sections.push({ category: "User-Agent Patterns", ...userAgentDiff, changed: [] })
+  }
+
+  const billingDiff = diffArrays(oldSig.billingHeaderFormat || [], newSig.billingHeaderFormat || [])
+  if (billingDiff.added.length || billingDiff.removed.length) {
+    sections.push({ category: "Billing Header Format", ...billingDiff, changed: [] })
+  }
+
   // Codenames
   const codenameDiff = diffArrays(
     oldSig.internalCodenames || [],

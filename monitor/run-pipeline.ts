@@ -100,14 +100,27 @@ async function runDemincer(binaryPath: string, version: string): Promise<string>
   return decodedDir
 }
 
+function compareSemver(a: string, b: string): number {
+  const pa = a.split(".").map((n) => Number.parseInt(n, 10))
+  const pb = b.split(".").map((n) => Number.parseInt(n, 10))
+  const len = Math.max(pa.length, pb.length)
+  for (let i = 0; i < len; i++) {
+    const da = Number.isFinite(pa[i]) ? pa[i] : 0
+    const db = Number.isFinite(pb[i]) ? pb[i] : 0
+    if (da !== db) return da - db
+  }
+  return 0
+}
+
 function findPreviousSignature(currentVersion: string): string | null {
   if (!existsSync(SIGS_DIR)) return null
-  const files = readdirSync(SIGS_DIR).filter((f) => f.endsWith(".json") && f.startsWith("v"))
-  const sorted = files
-    .filter((f) => f !== `v${currentVersion}.json`)
-    .sort()
-    .reverse()
-  return sorted.length > 0 ? join(SIGS_DIR, sorted[0]) : null
+  const versions = readdirSync(SIGS_DIR)
+    .map((f) => f.match(/^v(\d+\.\d+\.\d+)\.json$/)?.[1])
+    .filter((v): v is string => typeof v === "string" && v !== currentVersion)
+    .filter((v) => compareSemver(v, currentVersion) < 0)
+    .sort(compareSemver)
+  const previous = versions.at(-1)
+  return previous ? join(SIGS_DIR, `v${previous}.json`) : null
 }
 
 interface PipelineResult {

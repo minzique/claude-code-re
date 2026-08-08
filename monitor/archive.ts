@@ -32,6 +32,28 @@ function countFiles(dir: string, pattern: RegExp): number {
   return readdirSync(dir).filter((f) => pattern.test(f)).length
 }
 
+function compareSemver(a: string, b: string): number {
+  const pa = a.split(".").map((n) => Number.parseInt(n, 10))
+  const pb = b.split(".").map((n) => Number.parseInt(n, 10))
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const da = Number.isFinite(pa[i]) ? pa[i] : 0
+    const db = Number.isFinite(pb[i]) ? pb[i] : 0
+    if (da !== db) return da - db
+  }
+  return 0
+}
+
+function findClosestDiff(version: string): string | null {
+  if (!existsSync(SIGS_DIR)) return null
+  const candidates = readdirSync(SIGS_DIR)
+    .map((file) => ({ file, match: file.match(/^diff-(\d+\.\d+\.\d+)-to-(\d+\.\d+\.\d+)\.md$/) }))
+    .filter((candidate): candidate is { file: string; match: RegExpMatchArray } =>
+      candidate.match !== null && candidate.match[2] === version && compareSemver(candidate.match[1] ?? "0", version) < 0,
+    )
+    .sort((a, b) => compareSemver(b.match[1] ?? "0", a.match[1] ?? "0"))
+  return candidates[0]?.file ?? null
+}
+
 export function archiveVersion(version: string): string {
   const versionDir = join(ARCHIVE_DIR, `v${version}`)
   mkdirSync(versionDir, { recursive: true })
@@ -101,12 +123,12 @@ export function archiveVersion(version: string): string {
     console.log(`  ✓ binary-manifest.json`)
   }
 
-  // 4. Find and copy any existing diff
-  const diffs = readdirSync(SIGS_DIR).filter((f) => f.endsWith(".md") && f.includes(`to-${version}`))
-  if (diffs.length > 0) {
-    cpSync(join(SIGS_DIR, diffs[0]), join(versionDir, "diff.md"))
-    manifest.contents.diff = diffs[0]
-    console.log(`  ✓ diff.md (${diffs[0]})`)
+  // 4. Copy the narrowest available diff (closest prior semver).
+  const diff = findClosestDiff(version)
+  if (diff) {
+    cpSync(join(SIGS_DIR, diff), join(versionDir, "diff.md"))
+    manifest.contents.diff = diff
+    console.log(`  ✓ diff.md (${diff})`)
   }
 
   // 5. Find and copy any existing analysis

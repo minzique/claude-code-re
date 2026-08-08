@@ -20,7 +20,7 @@
  *   2 = inputs missing (signature/diff not found)
  */
 
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, mkdirSync, readdirSync, writeFileSync } from "node:fs"
 import { join, dirname } from "node:path"
 
 const ROOT = dirname(import.meta.dir)
@@ -52,6 +52,29 @@ interface ClassifierReport {
   recommendedAdapterVersionBump: "patch" | "minor" | "none"
 }
 
+function findEvidence(decodedDir: string, patterns: RegExp[], maxResults = 5): string[] {
+  if (!existsSync(decodedDir)) return []
+  const evidence: string[] = []
+  for (const file of readdirSync(decodedDir)) {
+    if (!file.endsWith(".js")) continue
+    const path = join(decodedDir, file)
+    let code = ""
+    try {
+      code = readFileSync(path, "utf8")
+    } catch {
+      continue
+    }
+    const lines = code.split(/\r?\n/)
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i] ?? ""
+      if (!patterns.some((pattern) => pattern.test(line))) continue
+      evidence.push(`${file}:${i + 1}: ${line.trim().replace(/\s+/g, " ").slice(0, 220)}`)
+      if (evidence.length >= maxResults) return evidence
+    }
+  }
+  return evidence
+}
+
 const SLOT_DEFS: Array<{
   slot: string
   hint: string
@@ -66,7 +89,7 @@ const SLOT_DEFS: Array<{
   {
     slot: "DEFAULT_CLAUDE_CODE_VERSION",
     hint: "Adapter constant in extensions/index.ts",
-    evidence: (d) => [join(d, "decoded/4683.js")],
+    evidence: (d) => findEvidence(d, [/VERSION:\s*["']\d+\.\d+\.\d+["']/]),
     classify: (_diff, prev, next) => {
       const a = prev?.version
       const b = next?.version
@@ -79,7 +102,7 @@ const SLOT_DEFS: Array<{
   {
     slot: "billingHeader.format",
     hint: "x-anthropic-billing-header template",
-    evidence: (d) => [join(d, "decoded/2129.js"), join(d, "decoded/4683.js")],
+    evidence: (d) => findEvidence(d, [/x-anthropic-billing-header/i, /cc_version=\$\{/]),
     classify: (diff) => {
       if (/billing.*header|x-anthropic-billing-header/i.test(diff))
         return { status: "shape-change", detail: "billing header mentioned in diff; review evidence" }
@@ -89,7 +112,7 @@ const SLOT_DEFS: Array<{
   {
     slot: "rateLimit.headerKeys",
     hint: "anthropic-ratelimit-unified-* keys",
-    evidence: (d) => [join(d, "decoded/2490.js")],
+    evidence: (d) => findEvidence(d, [/anthropic-ratelimit-unified-/i]),
     classify: (diff) => {
       if (/anthropic-ratelimit-unified-(fallback|upgrade-paths|representative-claim|overage)/i.test(diff))
         return { status: "shape-change", detail: "rate-limit header set changed; review parser" }
@@ -101,7 +124,7 @@ const SLOT_DEFS: Array<{
   {
     slot: "rateLimit.thresholds",
     hint: "five_hour / seven_day threshold constants",
-    evidence: (d) => [join(d, "decoded/2491.js")],
+    evidence: (d) => findEvidence(d, [/windowSeconds:\s*(?:18000|604800)/, /thresholds:\s*\[/]),
     classify: (diff) => {
       if (/five_hour|seven_day|0\.9|0\.72|0\.75|0\.6|0\.5|0\.35|0\.25|0\.15/i.test(diff))
         return { status: "shape-change", detail: "threshold-shaped tokens in diff; review" }
@@ -111,14 +134,7 @@ const SLOT_DEFS: Array<{
   {
     slot: "systemPrompt.placement",
     hint: "billing block / identity / cache rules",
-    // TODO(automation): Webpack chunk IDs (4682/4687/4688/...) drift across
-    // bundle re-splits. Replace with content-addressable matchers when the
-    // pipeline starts emitting per-symbol locations.
-    evidence: (d) => [
-      join(d, "decoded/4682.js"),
-      join(d, "decoded/4687.js"),
-      join(d, "decoded/4688.js"),
-    ],
+    evidence: (d) => findEvidence(d, [/You are Claude Code, Anthropic/i, /cache_control/]),
     classify: (diff) => {
       // Match "system prompt" / "cache_control" / "claude code identity"
       // in code/prose context only. Reject SCREAMING_SNAKE env-var names like
@@ -134,7 +150,7 @@ const SLOT_DEFS: Array<{
   {
     slot: "oauth.scopes",
     hint: "user:inference and friends",
-    evidence: () => [],
+    evidence: (d) => findEvidence(d, [/user:inference/, /oauth-2025-04-20/, /user:ccr_inference/]),
     classify: (diff) => {
       if (/user:inference|claude_oauth|oauth\s+scope/i.test(diff))
         return { status: "shape-change", detail: "OAuth scope token in diff; review" }
@@ -144,7 +160,7 @@ const SLOT_DEFS: Array<{
   {
     slot: "userAgent",
     hint: "Claude-Code/{ver} user-agent constant",
-    evidence: () => [],
+    evidence: (d) => findEvidence(d, [/claude-cli\//, /User-Agent/]),
     classify: (diff) => {
       if (/claude-code\/\d|user-agent/i.test(diff))
         return { status: "shape-change", detail: "user-agent token in diff; review" }
@@ -267,11 +283,9 @@ function buildReport(version: string, prev: string): ClassifierReport {
 
   const slots: SlotResult[] = SLOT_DEFS.map((def) => {
     const c = def.classify(diffMd, prevSig, nextSig, decodedDir)
-    const evidence = def.evidence(decodedDir).filter((p) => existsSync(p))
-    if (c.status === "shape-change" && def.evidence(decodedDir).length > 0 && evidence.length === 0) {
-      warnings.push(
-        `slot ${def.slot} flagged shape-change but expected evidence files were not found in ${decodedDir} (Webpack chunk IDs may have shifted)`,
-      )
+    const evidence = def.evidence(decodedDir)
+    if (c.status === "shape-change" && evidence.length === 0) {
+      warnings.push(`slot ${def.slot} flagged shape-change but no decoded evidence was found in ${decodedDir}`)
     }
     return {
       slot: def.slot,
