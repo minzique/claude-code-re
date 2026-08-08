@@ -24,6 +24,10 @@ Counts 2.1.126 → 2.1.226: modules 3.0k → 5112 · beta flags 33 → 43 · fea
 env vars 317 → 265 (naming churn, not shrinkage) · API endpoints 29 → 63 · model ids 21 → 22 ·
 oauth scopes 6 → 13 · header keys 26 → 45.
 
+The 2.1.225 → 2.1.226 diff reports all user-agent and billing-header formats as added because
+2.1.225 was extracted before those two extractors were fixed. This is one-time extractor bootstrap
+noise, not evidence that every listed request fingerprint originated in 2.1.226.
+
 Classifier verdict: `needs-review` (bump `DEFAULT_CLAUDE_CODE_VERSION`, shape-change on
 `rateLimit.headerKeys` and `oauth.scopes`). The manual pass below is much richer.
 
