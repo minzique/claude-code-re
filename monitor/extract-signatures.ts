@@ -154,7 +154,7 @@ function normalizeSnippet(value: string): string {
 
 function extractUserAgentPatterns(modules: Map<string, string>): string[] {
   const patterns = new Set<string>()
-  const quotedUaRegex = /["'`](claude-(?:cli|code)\/[^"'`]+)["'`]/g
+  const quotedUaRegex = /["'](claude-(?:cli|code)\/[^"']+)["']/g
   const templateUaRegex = /`(claude-(?:cli|code)\/\$\{[^`]+)`/g
   for (const [, code] of modules) {
     for (const regex of [quotedUaRegex, templateUaRegex]) {
@@ -230,11 +230,12 @@ function extractCodenames(modules: Map<string, string>): string[] {
 }
 
 function detectVersion(dir: string): string {
-  // Try to find version from the code itself
+  // Try to find version from Claude Code's own build metadata.
   for (const file of readdirSync(dir)) {
     if (!file.endsWith(".js")) continue
     const code = readFileSync(join(dir, file), "utf-8")
-    const vMatch = code.match(/claude-cli\/([\d.]+)/) ?? code.match(/VERSION:\s*["']([\d.]+)["']/)
+    const vMatch = code.match(/claude-cli\/([\d.]+)/) ??
+      code.match(/PACKAGE_URL:\s*["']@anthropic-ai\/claude-code["'][\s\S]{0,300}?VERSION:\s*["']([\d.]+)["']/)
     if (vMatch) return vMatch[1]
   }
   // Fallback: extract from directory path

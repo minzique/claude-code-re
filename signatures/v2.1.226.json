@@ -1,6 +1,6 @@
 {
   "version": "2.1.226",
-  "extractedAt": "2026-08-08T04:41:41.687Z",
+  "extractedAt": "2026-08-08T04:56:01.748Z",
   "betaFlags": [
     {
       "value": "advanced-tool-use-2025-11-20",
@@ -11266,10 +11266,8 @@
     "You are a Claude agent, built on Anthropic"
   ],
   "userAgentPatterns": [
-    "claude-cli/${{ ISSUES_EXPLAINER:",
     "claude-cli/${{ ISSUES_EXPLAINER: \"report the issue at https://github.com/anthropics/claude-code/issues\", PACKAGE_URL: \"@anthropic-ai/claude-code\", README_URL: \"https://code.claude.com/docs/en/overview\", VERSION: \"2.1.226\", FEEDBACK_CHANNEL: \"https://github.com/anthropics/claude-code/issues\", BUILD_TIME: \"2026-08-08T00:42:40Z\", GIT_SHA: \"e140b3281c1e8d834468889bd0a5c3fd2f15507c\", DD_SOURCEMAP_GROUP: \"darwin\" }.VERSION} (external, ${te.CLAUDE_CODE_ENTRYPOINT ?? \"cli\"}${e}${t}${n})",
     "claude-code/${e.ccVersion}",
-    "claude-code/${{ ISSUES_EXPLAINER:",
     "claude-code/${{ ISSUES_EXPLAINER: \"report the issue at https://github.com/anthropics/claude-code/issues\", PACKAGE_URL: \"@anthropic-ai/claude-code\", README_URL: \"https://code.claude.com/docs/en/overview\", VERSION: \"2.1.226\", FEEDBACK_CHANNEL: \"https://github.com/anthropics/claude-code/issues\", BUILD_TIME: \"2026-08-08T00:42:40Z\", GIT_SHA: \"e140b3281c1e8d834468889bd0a5c3fd2f15507c\", DD_SOURCEMAP_GROUP: \"darwin\" }.VERSION}",
     "claude-code/${{ ISSUES_EXPLAINER: \"report the issue at https://github.com/anthropics/claude-code/issues\", PACKAGE_URL: \"@anthropic-ai/claude-code\", README_URL: \"https://code.claude.com/docs/en/overview\", VERSION: \"2.1.226\", FEEDBACK_CHANNEL: \"https://github.com/anthropics/claude-code/issues\", BUILD_TIME: \"2026-08-08T00:42:40Z\", GIT_SHA: \"e140b3281c1e8d834468889bd0a5c3fd2f15507c\", DD_SOURCEMAP_GROUP: \"darwin\" }.VERSION}${t}"
   ],
