@@ -148,16 +148,23 @@ function extractSystemPrompts(modules: Map<string, string>): string[] {
   return prompts.sort()
 }
 
+function normalizeSnippet(value: string): string {
+  return value.replace(/\s+/g, " ").trim()
+}
+
 function extractUserAgentPatterns(modules: Map<string, string>): string[] {
-  const patterns: string[] = []
-  const uaRegex = /["'](claude-(?:cli|code)\/[^"']+)["']/g
+  const patterns = new Set<string>()
+  const quotedUaRegex = /["'`](claude-(?:cli|code)\/[^"'`]+)["'`]/g
+  const templateUaRegex = /`(claude-(?:cli|code)\/\$\{[^`]+)`/g
   for (const [, code] of modules) {
-    for (const match of code.matchAll(uaRegex)) {
-      const val = match[1]
-      if (!patterns.includes(val)) patterns.push(val)
+    for (const regex of [quotedUaRegex, templateUaRegex]) {
+      for (const match of code.matchAll(regex)) {
+        const val = match[1]
+        if (val) patterns.add(normalizeSnippet(val))
+      }
     }
   }
-  return patterns.sort()
+  return Array.from(patterns).sort()
 }
 
 function extractOAuthScopes(modules: Map<string, string>): string[] {
@@ -190,21 +197,19 @@ function extractHeaderKeys(modules: Map<string, string>): string[] {
 }
 
 function extractBillingFormat(modules: Map<string, string>): string[] {
-  const formats: string[] = []
-  const fmtRegex = /["'](cc_version=[^"']+)["']/g
+  const formats = new Set<string>()
+  const literalRegex = /["'`](x-anthropic-billing-header:\s*cc_version=[^"'`]+)["'`]/g
+  const templateRegex = /`(x-anthropic-billing-header:\s*cc_version=\$\{[^`]+)`/g
+  const fragmentRegex = /["'`](cc_version=[^"'`]+)["'`]/g
   for (const [, code] of modules) {
-    for (const match of code.matchAll(fmtRegex)) {
-      if (!formats.includes(match[1])) formats.push(match[1])
+    for (const regex of [literalRegex, templateRegex, fragmentRegex]) {
+      for (const match of code.matchAll(regex)) {
+        const val = match[1]
+        if (val) formats.add(normalizeSnippet(val))
+      }
     }
   }
-  // Also template literal patterns
-  const tmplRegex = /`(cc_version=\$\{[^`]+)`/g
-  for (const [, code] of modules) {
-    for (const match of code.matchAll(tmplRegex)) {
-      if (!formats.includes(match[1])) formats.push(match[1])
-    }
-  }
-  return formats
+  return Array.from(formats).sort()
 }
 
 function extractCodenames(modules: Map<string, string>): string[] {
@@ -229,7 +234,7 @@ function detectVersion(dir: string): string {
   for (const file of readdirSync(dir)) {
     if (!file.endsWith(".js")) continue
     const code = readFileSync(join(dir, file), "utf-8")
-    const vMatch = code.match(/claude-cli\/([\d.]+)/)
+    const vMatch = code.match(/claude-cli\/([\d.]+)/) ?? code.match(/VERSION:\s*["']([\d.]+)["']/)
     if (vMatch) return vMatch[1]
   }
   // Fallback: extract from directory path
