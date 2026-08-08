@@ -14,9 +14,9 @@ bun run monitor/prepare-adapter-pr.ts --version 2.1.226 --prev 2.1.126
 
 Artifacts:
 - `signatures/v2.1.226.json`
-- `signatures/diff-2.1.126-to-2.1.226.md` (the correct base; see bug 1 below)
-- `signatures/diff-2.1.98-to-2.1.226.md` (what the pipeline produced on its own)
-- `archive/v2.1.226/*` (5112 app modules)
+- `signatures/diff-2.1.225-to-2.1.226.md` (canonical pipeline diff after the semver fix)
+- `signatures/diff-2.1.126-to-2.1.226.md` (explicit three-month adapter-drift window)
+- `archive/v2.1.226/*` (5112 app modules; canonical diff is 2.1.225 → 2.1.226)
 - `pocs/bun-demincer/work/v2.1.226/decoded/`
 - monitor state updated: `latest=2.1.226`, `stable=2.1.220` (was `2.1.114` / `2.1.98`)
 
