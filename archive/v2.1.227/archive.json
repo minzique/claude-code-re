@@ -1,0 +1,18 @@
+{
+  "version": "2.1.227",
+  "archivedAt": "2026-08-11T01:47:16.312Z",
+  "contents": {
+    "signature": true,
+    "decodedModules": true,
+    "binary": false,
+    "diff": "diff-2.1.226-to-2.1.227.md",
+    "analysis": null,
+    "manifest": true
+  },
+  "stats": {
+    "totalModules": 5237,
+    "appModules": 5235,
+    "vendorModules": 2,
+    "binarySize": 285046400
+  }
+}
